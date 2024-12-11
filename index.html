@@ -324,6 +324,14 @@
                 <label for="startIndex">Starting Question Number:</label>
                 <input type="number" id="startIndex" name="startIndex" value="1">
             </div>
+            <div class="form-group">
+                <label for="correctMarks">Starting Question Number:</label>
+                <input type="number" id="correctMarks" name="correctMarks" value="2">
+            </div>
+            <div class="form-group">
+                <label for="incorrectMarks">Starting Question Number:</label>
+                <input type="number" id="incorrectMarks" name="incorrectMarks" value="1">
+            </div>
             <div class="button-group">
                 <button type="button" onclick="generateForm()">Generate Form</button>
                 <button type="button" onclick="clearAll()">Clear All</button>
@@ -368,7 +376,9 @@
         const numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
         const numColumns = parseInt(document.getElementById('numColumns').value) || 4;
         const startIndex = parseInt(document.getElementById('startIndex').value) || 1;
-        
+        const correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
+        const incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
+
         // Initialize time spent for each question
         function initializeTimeTracking(numQuestions,startIndex) {
             for (let i = 0; i < numQuestions; i++) {
@@ -434,10 +444,14 @@
             const numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
             const numColumns = parseInt(document.getElementById('numColumns').value) || 4;
             const startIndex = parseInt(document.getElementById('startIndex').value) || 1;
+            const correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
+            const incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
             // Save number of questions and columns to local storage
             localStorage.setItem('numQuestions', numQuestions);
             localStorage.setItem('numColumns', numColumns);
             localStorage.setItem('startIndex', startIndex);
+            localStorage.setItem('correctMarks', startIndex);
+            localStorage.setItem('incorrectMarks', startIndex);
             
             // Hide the questions and options after submitting
             document.getElementById('result').style.display = 'none';
@@ -529,6 +543,9 @@
             const numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
             const numColumns = parseInt(document.getElementById('numColumns').value) || 4;
             const startIndex = parseInt(document.getElementById('startIndex').value) || 1;
+            const correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
+            const incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
+
             let timeSpent = JSON.parse(localStorage.getItem('timeSpent')) || {};
             for (let i = 0; i < numQuestions; i++) {
                 const savedOption = localStorage.getItem(`q-${i+startIndex}`);
@@ -642,14 +659,17 @@
             
         }
         function showSummary() {
+            const correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
+            const incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
+
             const correctRadios = document.querySelectorAll('.correct:checked');
             const incorrectRadios = document.querySelectorAll('.incorrect:checked');
             const totalQuestions = document.querySelectorAll('.result-item').length;
             const correct_answers = correctRadios.length;
             const wrong_answers = incorrectRadios.length;
             const notAttempted = totalQuestions - (correct_answers+wrong_answers);
-            const marks = 2*correct_answers-wrong_answers;
-            const total_marks = 2*totalQuestions;
+            const marks = correctMarks*correct_answers-incorrectMarks*wrong_answers;
+            const total_marks = correctMarks*totalQuestions;
             const marks_percent = ((marks/total_marks*100)).toFixed(2);
             const summaryHTML = `<h2>Summary</h2><table class="summary-table">
             <tr>
@@ -739,6 +759,7 @@
             let timeSpent = JSON.parse(localStorage.getItem('timeSpent')) || {};
             const startIndex = parseInt(document.getElementById('startIndex').value) || 1;
             const numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
+            
             // Chart.register(Chart.Annotation);
             const timeSpents = {};
             for(let i = 1; i <= numQuestions; i++){
