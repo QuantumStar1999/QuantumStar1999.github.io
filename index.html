@@ -325,11 +325,11 @@
                 <input type="number" id="startIndex" name="startIndex" value="1">
             </div>
             <div class="form-group">
-                <label for="correctMarks">Starting Question Number:</label>
+                <label for="correctMarks">Marks for Correct:</label>
                 <input type="number" id="correctMarks" name="correctMarks" value="2">
             </div>
             <div class="form-group">
-                <label for="incorrectMarks">Starting Question Number:</label>
+                <label for="incorrectMarks">Marks for Incorrect:</label>
                 <input type="number" id="incorrectMarks" name="incorrectMarks" value="1">
             </div>
             <div class="button-group">
@@ -759,7 +759,7 @@
             let timeSpent = JSON.parse(localStorage.getItem('timeSpent')) || {};
             const startIndex = parseInt(document.getElementById('startIndex').value) || 1;
             const numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
-            
+
             // Chart.register(Chart.Annotation);
             const timeSpents = {};
             for(let i = 1; i <= numQuestions; i++){
