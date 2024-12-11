@@ -1,2 +1,3 @@
-# QuantumStar1999.github.io
-Just A Repo
+# QuantumStar1999
+Check out my exam site [here](index.html)
+
