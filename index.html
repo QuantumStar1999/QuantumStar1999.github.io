@@ -367,7 +367,11 @@
     <script>
         let startTime;
         let timerInterval;
-        let elapsedTime = 0;
+        let elapsedTime = parseInt(localStorage.getItem('elapsedTime'))||0;
+        localStorage.setItem('elapsedTime',elapsedTime);
+        let startFlag = (localStorage.getItem('startFlag')===true) || false;
+        localStorage.setItem('startFlag',startFlag);
+
         let timeSpent = JSON.parse(localStorage.getItem('timeSpent')) || {};
         let history = {};
         let timeChart;
@@ -382,24 +386,112 @@
         // Initialize time spent for each question
         function initializeTimeTracking(numQuestions,startIndex) {
             for (let i = 0; i < numQuestions; i++) {
-                timeSpent[i+startIndex] = 0;
+                timeSpent[i+startIndex] = elapsedTime===0 ? 0: timeSpent[i+startIndex];
             }
         }
+        /*
         document.getElementById('startButton').addEventListener('click', function() {
-            startTime = new Date();
-            lastTimestamp = Date.now();
-            initializeTimeTracking(numQuestions,startIndex);
-            addEventListeners();
+            if(startFlag){
+                return ;
+            }
+            if(localStorage.getItem('elapsedTime')!==null){
+                elapsedTime = parseInt(localStorage.getItem('elapsedTime'));
+                // timerInterval = setInterval(updateTimer, 1000);
+                // startTime = new Date(localStorage.getItem('startTime') || new Date());
+                // lastTimestamp = new Date(localStorage.getItem('lastTimestamp') || Date.now());
+
+                
+                // localStorage.setItem('startTime', startTime.toISOString());
+                // localStorage.setItem('lastTimestamp', lastTimestamp.toString());
+            }
+            else{  
+            
+                elapsedTime = 0;
+                localStorage.setItem('elapsedTime', 0);
+
+                initializeTimeTracking(numQuestions,startIndex);
+                addEventListeners();
+                
+                startFlag = true;
+                
+            }
             timerInterval = setInterval(updateTimer, 1000);
+            
+            startTime = new Date(localStorage.getItem('startTime') || new Date());
+            lastTimestamp = new Date(localStorage.getItem('lastTimestamp') || Date.now());
+
+            
+            localStorage.setItem('startTime', startTime.toISOString());
+            localStorage.setItem('lastTimestamp', lastTimestamp.toString());
+            
+            
+            
+            // let abc = new Date(localStorage.getItem('startTime'));
+            // console.log("Value of start",  abc-startTime);
+            
         });
+        */
+
+        document.getElementById('startButton').addEventListener('click', function() {
+            
+            if (!(localStorage.getItem('startFlag')==='true')) {
+                
+            
+                startFlag = true;
+                localStorage.setItem('startFlag',startFlag);
+
+                startTime = new Date(localStorage.getItem('startTime') || new Date());
+                lastTimestamp = new Date(localStorage.getItem('lastTimestamp') || Date.now());
+                timerInterval = setInterval(updateTimer, 1000);
+
+
+                localStorage.setItem('startTime', startTime.toISOString());
+                localStorage.setItem('lastTimestamp', lastTimestamp.toString());
+
+                if (localStorage.getItem('elapsedTime') !== null) {
+                    elapsedTime = parseInt(localStorage.getItem('elapsedTime'));
+                    // console.log("First loop when test is paused!");
+                } else {
+                    elapsedTime = 0;
+                    localStorage.setItem('elapsedTime', 0);
+                    
+                    initializeTimeTracking(numQuestions, startIndex);
+                    addEventListeners();
+                    // console.log("Elapsed Time here:", elapsedTime);
+                    // console.log("Second loop when test is started!");
+                }       
+
+                console.log("Start Time:", startTime);
+                console.log("Last Timestamp:", lastTimestamp);
+                console.log("Elapsed Time:", elapsedTime);
+            }
+        });
+
 
 
         document.getElementById('stopButton').addEventListener('click', function() {
             clearInterval(timerInterval);
-            elapsedTime = new Date() - startTime;
+            
+            if(localStorage.getItem('startTime')!==null){
+
+                elapsedTime = elapsedTime + (new Date() - startTime);
+                localStorage.setItem('elapsedTime',elapsedTime);
+
+                updateTimer(0);
+                startFlag = false;
+                localStorage.setItem('startFlag',startFlag);
+
+                localStorage.removeItem('lastTimestamp');
+                localStorage.removeItem('startTime');
+                console.log("It should not print if you press stop for second time");
+            }
+            console.log(localStorage.getItem("MyTry"));
+                
+            
         });
         function updateTimeSpent(questionNumber) {
             const currentTimestamp = Date.now();
+            lastTimestamp = new Date(localStorage.getItem('lastTimestamp')) || Date.now();
             const timeDifference = currentTimestamp - lastTimestamp;
 
             // Update the time spent on the current question
@@ -407,6 +499,7 @@
 
             // Update the last timestamp
             lastTimestamp = currentTimestamp;
+            localStorage.setItem('lastTimestamp', lastTimestamp.toString());
             localStorage.setItem('timeSpent',JSON.stringify(timeSpent));
         }
 
@@ -423,15 +516,19 @@
 
 
 
-        function updateTimer() {
+        function updateTimer(flag = 1) {
             const currentTime = new Date();
-            const elapsedTime = currentTime - startTime;
+            startTime = new Date(localStorage.getItem('startTime'));
+            const elapsedTimeNow =  parseInt(localStorage.getItem('elapsedTime')) + flag*((currentTime - startTime));
             
+            console.log("Elapsed Time Now: ", elapsedTimeNow,"\n", 
+                        "elapsedTime:", elapsedTime,"\n", 
+                        "localStorage(elapsedTime):", parseInt(localStorage.getItem('elapsedTime')),"\n",
+                        "start Time:",startTime);
 
-            const hours = Math.floor(elapsedTime / (1000 * 60 * 60));
-            const minutes = Math.floor((elapsedTime % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
-
+            const hours = Math.floor(elapsedTimeNow / (1000 * 60 * 60)) || 0;
+            const minutes = Math.floor((elapsedTimeNow % (1000 * 60 * 60)) / (1000 * 60)) || 0;
+            const seconds = Math.floor((elapsedTimeNow % (1000 * 60)) / 1000) || 0;
             document.getElementById('timer').textContent =
                 `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
         }
@@ -439,6 +536,30 @@
         function pad(number) {
             return number < 10 ? '0' + number : number;
         }
+        window.onload = function() {
+            updateTimer(0);
+            if(localStorage.getItem('startFlag_')==='true'){
+                generateForm();        
+                document.getElementById('startButton').click();
+            }
+
+
+        };
+        window.addEventListener('beforeunload', function (event) {
+            // Your function or code to run
+            if(localStorage.getItem('startFlag')==='true'){
+                document.getElementById('stopButton').click();
+                localStorage.setItem('startFlag_', true);
+            }else{
+                localStorage.setItem('startFlag_', false);
+            }
+
+            // Standard way to show a confirmation dialog (modern browsers may not honor this)
+            event.preventDefault();
+            event.returnValue = '';
+        });
+
+
 
         function generateForm() {
             const numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
@@ -561,15 +682,17 @@
 
         function clearAll() {
             localStorage.clear();
+            clearInterval(timerInterval);
             history = {};
             document.getElementById('formContainer-wrapper').style.display = 'none';
             document.getElementById('result').style.display = 'none';
             document.getElementById('summary-button-container').style.display = 'none';
             document.getElementById('chart').innerHTML =`<canvas id="timeChart"></canvas>`;
             document.getElementById('time-summary').style.display = 'none';
-        
+            document.getElementById('timer').textContent =
+                `${pad(0)}:${pad(0)}:${pad(0)}`;
         }
-
+        /*
         window.onload = function() {
             // const savedNumQuestions = localStorage.getItem('numQuestions');
             // const savedNumColumns = localStorage.getItem('numColumns');
@@ -586,8 +709,14 @@
             //     document.getElementById('startIndex').value = savedStartIndex;
             // }
             generateForm();
+            if(localStorage.getItem('startFlag')){
+                // document.getElementById('startButton').click();
+            }
+            // else
+                updateTimer(0);
+            
 
-        };
+        };*/
         // Handle form submission
         function submitForm() {
             // Trigger the stop button click event
