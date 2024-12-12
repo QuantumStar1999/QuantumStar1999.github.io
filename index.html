@@ -377,18 +377,18 @@
         let timeChart;
 
         let lastTimestamp;
-        const numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
-        const numColumns = parseInt(document.getElementById('numColumns').value) || 4;
-        const startIndex = parseInt(document.getElementById('startIndex').value) || 1;
-        const correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
-        const incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
+        let numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
+        let numColumns = parseInt(document.getElementById('numColumns').value) || 4;
+        let startIndex = parseInt(document.getElementById('startIndex').value) || 1;
+        let correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
+        let incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
 
         // Initialize time spent for each question
-        function initializeTimeTracking(numQuestions,startIndex) {
-            for (let i = 0; i < numQuestions; i++) {
-                timeSpent[i+startIndex] = elapsedTime===0 ? 0: timeSpent[i+startIndex];
-            }
-        }
+        // function initializeTimeTracking(numQuestions,startIndex) {
+        //     for (let i = 0; i < numQuestions; i++) {
+        //         timeSpent[i+startIndex] = (timeSpent[i+startIndex]===null) ? 0: timeSpent[i+startIndex];
+        //     }
+        // }
         /*
         document.getElementById('startButton').addEventListener('click', function() {
             if(startFlag){
@@ -435,7 +435,7 @@
         document.getElementById('startButton').addEventListener('click', function() {
             
             if (!(localStorage.getItem('startFlag')==='true')) {
-                
+                generateForm();
             
                 startFlag = true;
                 localStorage.setItem('startFlag',startFlag);
@@ -443,7 +443,7 @@
                 startTime = new Date(localStorage.getItem('startTime') || new Date());
                 lastTimestamp = new Date(localStorage.getItem('lastTimestamp') || Date.now());
                 timerInterval = setInterval(updateTimer, 1000);
-
+                addEventListeners();
 
                 localStorage.setItem('startTime', startTime.toISOString());
                 localStorage.setItem('lastTimestamp', lastTimestamp.toString());
@@ -455,8 +455,8 @@
                     elapsedTime = 0;
                     localStorage.setItem('elapsedTime', 0);
                     
-                    initializeTimeTracking(numQuestions, startIndex);
-                    addEventListeners();
+                    // initializeTimeTracking(numQuestions, startIndex);
+                    
                     // console.log("Elapsed Time here:", elapsedTime);
                     // console.log("Second loop when test is started!");
                 }       
@@ -483,21 +483,27 @@
 
                 localStorage.removeItem('lastTimestamp');
                 localStorage.removeItem('startTime');
-                console.log("It should not print if you press stop for second time");
+                // console.log("It should not print if you press stop for second time");
             }
-            console.log(localStorage.getItem("MyTry"));
+            // console.log(localStorage.getItem("MyTry"));
                 
             
         });
         function updateTimeSpent(questionNumber) {
             const currentTimestamp = Date.now();
-            lastTimestamp = new Date(localStorage.getItem('lastTimestamp')) || Date.now();
+            // lastTimestamp = new Date(localStorage.getItem('lastTimestamp'));
             const timeDifference = currentTimestamp - lastTimestamp;
 
             // Update the time spent on the current question
-            timeSpent[questionNumber] += timeDifference;
+            if(timeSpent[questionNumber]===null){
+                timeSpent[questionNumber] += timeDifference;
+            }
+            else{
+                timeSpent[questionNumber] = timeDifference;
+            }
 
             // Update the last timestamp
+            // localStorage.setItem('lastTimestamp',currentTimestamp);
             lastTimestamp = currentTimestamp;
             localStorage.setItem('lastTimestamp', lastTimestamp.toString());
             localStorage.setItem('timeSpent',JSON.stringify(timeSpent));
@@ -538,9 +544,35 @@
         }
         window.onload = function() {
             updateTimer(0);
+            const savedNumQuestions = localStorage.getItem('numQuestions');
+            const savedNumColumns = localStorage.getItem('numColumns');
+            const savedStartIndex = localStorage.getItem('startIndex');
+            const savedCorrect = localStorage.getItem('correctMarks');
+            const savedIncorrect = localStorage.getItem('incorrectMarks');
+            
+            if (savedNumQuestions) {
+                document.getElementById('numQuestions').value = savedNumQuestions;
+            }
+            if (savedNumColumns) {
+                document.getElementById('numColumns').value = savedNumColumns;
+            }
+            if (savedStartIndex) {
+                document.getElementById('startIndex').value = savedStartIndex;
+            }
+            if (savedCorrect) {
+                document.getElementById('correctMarks').value = savedCorrect;
+
+            }
+            if (savedIncorrect) {
+                document.getElementById('incorrectMarks').value = savedIncorrect;
+
+            }
+            
             if(localStorage.getItem('startFlag_')==='true'){
                 generateForm();        
                 document.getElementById('startButton').click();
+            }else{
+                loadSelections();
             }
 
 
@@ -562,11 +594,11 @@
 
 
         function generateForm() {
-            const numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
-            const numColumns = parseInt(document.getElementById('numColumns').value) || 4;
-            const startIndex = parseInt(document.getElementById('startIndex').value) || 1;
-            const correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
-            const incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
+            numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
+            numColumns = parseInt(document.getElementById('numColumns').value) || 4;
+            startIndex = parseInt(document.getElementById('startIndex').value) || 1;
+            correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
+            incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
             // Save number of questions and columns to local storage
             localStorage.setItem('numQuestions', numQuestions);
             localStorage.setItem('numColumns', numColumns);
@@ -638,7 +670,6 @@
             // Show the form
             formContainer.appendChild(form);
             loadSelections();
-            
 
         }
 
@@ -667,7 +698,7 @@
             const correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
             const incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
 
-            let timeSpent = JSON.parse(localStorage.getItem('timeSpent')) || {};
+            timeSpent = JSON.parse(localStorage.getItem('timeSpent')) || {};
             for (let i = 0; i < numQuestions; i++) {
                 const savedOption = localStorage.getItem(`q-${i+startIndex}`);
                 if (savedOption) {
@@ -745,6 +776,7 @@
                 if ((index + 1) % 4 === 0) {
                     resultHTML += '</tr><tr>';
                 }
+
             });
 
             resultHTML += '</tr></table>';
@@ -770,6 +802,13 @@
                 correctRadio.name = `question-${i + startIndex-1}`;
                 correctRadio.className = 'correct';
                 correctRadio.title = 'Correct';
+                correctRadio.addEventListener('click', function() { 
+                    if(localStorage.getItem(`response-${i + startIndex - 1}`)==='correct'){
+                        localStorage.removeItem(`response-${i + startIndex - 1}`);
+                        correctRadio.checked = false;
+                    } else
+                        localStorage.setItem(`response-${i+startIndex-1}`, 'correct');
+                });
                 resultItem.appendChild(correctRadio);
 
                 const incorrectRadio = document.createElement('input');
@@ -777,14 +816,37 @@
                 incorrectRadio.name = `question-${i + startIndex-1}`;
                 incorrectRadio.className = 'incorrect';
                 incorrectRadio.title = 'Incorrect';
+                incorrectRadio.addEventListener('click', function() {  
+                    if(localStorage.getItem(`response-${i + startIndex - 1}`)==='incorrect'){
+                        localStorage.removeItem(`response-${i + startIndex - 1}`);
+                        incorrectRadio.checked = false;
+                    } else
+                        localStorage.setItem(`response-${i+startIndex-1}`, 'incorrect');
+
+                });
                 resultItem.appendChild(incorrectRadio);
 
+                // Load the saved state 
+                const savedResponse = localStorage.getItem(`response-${i + startIndex - 1}`); 
+                if (savedResponse === 'correct') { 
+                    correctRadio.checked = true; 
+                } else if (savedResponse === 'incorrect') { 
+                    incorrectRadio.checked = true; 
+                }
                 resultContainer.appendChild(resultItem);
             }
             // Show the summary button after submission
             document.getElementById('summary').style.display = 'none';
             document.getElementById('summaryButton').style.display='block';
             document.getElementById('summary-button-container').style.display = 'block';
+
+           
+            for (let i = 0; i < numQuestions; i++) {
+                if(!timeSpent.hasOwnProperty(i+startIndex))
+                    timeSpent[i+startIndex] = 0;
+            }
+            localStorage.setItem('timeSpent',JSON.stringify(timeSpent));
+            
             
         }
         function showSummary() {
