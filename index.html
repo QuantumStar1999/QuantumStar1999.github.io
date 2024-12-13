@@ -383,54 +383,6 @@
         let correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
         let incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
 
-        // Initialize time spent for each question
-        // function initializeTimeTracking(numQuestions,startIndex) {
-        //     for (let i = 0; i < numQuestions; i++) {
-        //         timeSpent[i+startIndex] = (timeSpent[i+startIndex]===null) ? 0: timeSpent[i+startIndex];
-        //     }
-        // }
-        /*
-        document.getElementById('startButton').addEventListener('click', function() {
-            if(startFlag){
-                return ;
-            }
-            if(localStorage.getItem('elapsedTime')!==null){
-                elapsedTime = parseInt(localStorage.getItem('elapsedTime'));
-                // timerInterval = setInterval(updateTimer, 1000);
-                // startTime = new Date(localStorage.getItem('startTime') || new Date());
-                // lastTimestamp = new Date(localStorage.getItem('lastTimestamp') || Date.now());
-
-                
-                // localStorage.setItem('startTime', startTime.toISOString());
-                // localStorage.setItem('lastTimestamp', lastTimestamp.toString());
-            }
-            else{  
-            
-                elapsedTime = 0;
-                localStorage.setItem('elapsedTime', 0);
-
-                initializeTimeTracking(numQuestions,startIndex);
-                addEventListeners();
-                
-                startFlag = true;
-                
-            }
-            timerInterval = setInterval(updateTimer, 1000);
-            
-            startTime = new Date(localStorage.getItem('startTime') || new Date());
-            lastTimestamp = new Date(localStorage.getItem('lastTimestamp') || Date.now());
-
-            
-            localStorage.setItem('startTime', startTime.toISOString());
-            localStorage.setItem('lastTimestamp', lastTimestamp.toString());
-            
-            
-            
-            // let abc = new Date(localStorage.getItem('startTime'));
-            // console.log("Value of start",  abc-startTime);
-            
-        });
-        */
 
         document.getElementById('startButton').addEventListener('click', function() {
             
@@ -454,9 +406,6 @@
                 } else {
                     elapsedTime = 0;
                     localStorage.setItem('elapsedTime', 0);
-                    
-                    // initializeTimeTracking(numQuestions, startIndex);
-                    
                     // console.log("Elapsed Time here:", elapsedTime);
                     // console.log("Second loop when test is started!");
                 }       
@@ -483,15 +432,12 @@
 
                 localStorage.removeItem('lastTimestamp');
                 localStorage.removeItem('startTime');
-                // console.log("It should not print if you press stop for second time");
             }
-            // console.log(localStorage.getItem("MyTry"));
                 
             
         });
         function updateTimeSpent(questionNumber) {
             const currentTimestamp = Date.now();
-            // lastTimestamp = new Date(localStorage.getItem('lastTimestamp'));
             const timeDifference = currentTimestamp - lastTimestamp;
 
             // Update the time spent on the current question
@@ -503,7 +449,6 @@
             }
 
             // Update the last timestamp
-            // localStorage.setItem('lastTimestamp',currentTimestamp);
             lastTimestamp = currentTimestamp;
             localStorage.setItem('lastTimestamp', lastTimestamp.toString());
             localStorage.setItem('timeSpent',JSON.stringify(timeSpent));
@@ -603,8 +548,8 @@
             localStorage.setItem('numQuestions', numQuestions);
             localStorage.setItem('numColumns', numColumns);
             localStorage.setItem('startIndex', startIndex);
-            localStorage.setItem('correctMarks', startIndex);
-            localStorage.setItem('incorrectMarks', startIndex);
+            localStorage.setItem('correctMarks', correctMarks);
+            localStorage.setItem('incorrectMarks', incorrectMarks);
             
             // Hide the questions and options after submitting
             document.getElementById('result').style.display = 'none';
@@ -723,31 +668,7 @@
             document.getElementById('timer').textContent =
                 `${pad(0)}:${pad(0)}:${pad(0)}`;
         }
-        /*
-        window.onload = function() {
-            // const savedNumQuestions = localStorage.getItem('numQuestions');
-            // const savedNumColumns = localStorage.getItem('numColumns');
-            // const savedStartIndex = localStorage.getItem('startIndex');
-            // const savedHistory = JSON.parse(localStorage.getItem('history'));
-            // // let timeSpent = JSON.parse(localStorage.getItem('timeSpent')) || {}; 
-            // if (savedNumQuestions) {
-            //     document.getElementById('numQuestions').value = savedNumQuestions;
-            // }
-            // if (savedNumColumns) {
-            //     document.getElementById('numColumns').value = savedNumColumns;
-            // }
-            // if (savedStartIndex) {
-            //     document.getElementById('startIndex').value = savedStartIndex;
-            // }
-            generateForm();
-            if(localStorage.getItem('startFlag')){
-                // document.getElementById('startButton').click();
-            }
-            // else
-                updateTimer(0);
-            
 
-        };*/
         // Handle form submission
         function submitForm() {
             // Trigger the stop button click event
