@@ -1005,32 +1005,38 @@
 
             // Display the statistics in a table
             displayStatisticsTable(allStats, correctStats, incorrectStats, notAttemptedStats);
-            // Calculate mean and standard deviation
-            const times = Object.values(timeSpents);
-            const mean = times.reduce((a, b) => a + b, 0) / times.length;
-            const stdDev = Math.sqrt(times.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / times.length);
 
             // Prepare data for the chart
-            let labels = Object.keys(timeSpents);
-            const data = Object.values(timeSpents);
-            const backgroundColors = labels.map(label => {
-                if (responses[label] === 'correct') return 'green';
-                if (responses[label] === 'incorrect') return 'red';
-                return 'grey';
-            });
-
+            
+            const correct_data =  Object.keys(responses).filter(key =>responses[key]=='correct').map(val =>({x:val,y:timeSpents[val.toString()]}) );
+            const incorrect_data =  Object.keys(responses).filter(key =>responses[key]=='incorrect').map(val =>({x:val,y:timeSpents[val.toString()]}) );
+            const notAttempted_data =  Object.keys(responses).filter(key =>responses[key]=='not_attempted').map(val =>({x:val,y:timeSpents[val.toString()]}) );
             // Create the chart
             const ctx = document.getElementById('timeChart').getContext('2d');
             timeChart = new Chart(ctx, {
                 type: 'scatter',
                 data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Time Spent (seconds)',
-                        data: labels.map((label, index) => ({ x: label, y: data[index] })),
-                        backgroundColor: backgroundColors,
-                        pointRadius: 5
-                    }]
+                    labels: Object.keys(timeSpents),
+                    datasets: [
+                        {
+                            label: 'Correct',
+                            data: correct_data,
+                            backgroundColor: 'green',
+                            pointRadius: 5
+                        },
+                        {
+                            label: 'Incorrect ',
+                            data: incorrect_data,
+                            backgroundColor: 'red',
+                            pointRadius: 5
+                        },
+                        {
+                            label: 'Not Attempted',
+                            data: notAttempted_data,
+                            backgroundColor: 'grey',
+                            pointRadius: 5
+                        },
+                    ]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
@@ -1055,8 +1061,8 @@
                             annotations: {
                                 meanLine: {
                                     type: 'line',
-                                    yMin: mean,
-                                    yMax: mean,
+                                    yMin: allStats.mean,
+                                    yMax: allStats.mean,
                                     borderColor: 'blue',
                                     borderWidth: 2,
                                     label: {
@@ -1067,8 +1073,8 @@
                                 },
                                 upperStdDevLine: {
                                     type: 'line',
-                                    yMin: mean + 3 * stdDev,
-                                    yMax: mean + 3 * stdDev,
+                                    yMin: allStats.mean + 3 * allStats.stdDev,
+                                    yMax: allStats.mean + 3 * allStats.stdDev,
                                     borderColor: 'orange',
                                     borderWidth: 2,
                                     label: {
@@ -1079,8 +1085,8 @@
                                 },
                                 lowerStdDevLine: {
                                     type: 'line',
-                                    yMin: mean - 3 * stdDev,
-                                    yMax: mean - 3 * stdDev,
+                                    yMin: allStats.mean - 3 * allStats.stdDev,
+                                    yMax: allStats.mean - 3 * allStats.stdDev,
                                     borderColor: 'orange',
                                     borderWidth: 2,
                                     label: {
@@ -1113,6 +1119,7 @@
             const allData = getHistogramData(allTimes, binSize);
             const correctData = getHistogramData(correctTimes, binSize);
             const incorrectData = getHistogramData(incorrectTimes, binSize);
+            const notAttemptedData = getHistogramData(notAttemptedTimes, binSize);
 
             hist_labels = allData.map(bin => `${(bin.binStart / 60).toFixed(1)}-${((bin.binStart + binSize) / 60).toFixed(1)} mins`);
 
@@ -1132,7 +1139,12 @@
                     label: 'Incorrect Questions',
                     data: incorrectData.map(bin => bin.count),
                     backgroundColor: 'rgba(255, 0, 0, 0.5)'
-                }
+                },
+                {
+                    label: 'Not attempted Questions',
+                    data: notAttemptedData.map(bin => bin.count),
+                    backgroundColor: 'rgba(138, 0, 241, 0.8)'
+                },
             ];
             const ctxHistogram = document.getElementById('histogramChart').getContext('2d');
             new Chart(ctxHistogram, {
