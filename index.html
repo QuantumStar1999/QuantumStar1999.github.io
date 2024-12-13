@@ -838,19 +838,55 @@
             createGraph();
         }
         function calculateStatistics(times) {
-            if(times.length===0){
+            if (times.length === 0) {
                 const mean = 0;
                 const median = 0;
                 const stdDev = 0;
-                return { mean, median, stdDev };
+                const meanDev = 0; 
+                const medianDev = 0;
+                const range = 0;
+                const Q1 = 0;
+                const Q3 = 0;
+                const IQR = 0;
+                const kurtosis = 0;
+                const skewness = 0;
+                return { mean, median, stdDev, meanDev, medianDev, range, Q1, Q3, IQR, skewness, kurtosis };
             }
+
             const mean = times.reduce((a, b) => a + b, 0) / times.length;
-            // const median = times.sort((a, b) => a - b)[Math.floor(times.length / 2)];
-            const median = times.sort()[Math.floor(times.length / 2)];
+            const sortedTimes = times.slice().sort((a, b) => a - b); // Sort the times
+
+            const median = sortedTimes[Math.floor(times.length / 2)];
             const stdDev = Math.sqrt(times.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b, 0) / times.length);
-            console.log(mean,median,stdDev);
-            return { mean, median, stdDev };
+            const meanDev = times.map(x => Math.abs(x - mean)).reduce((a, b) => a + b, 0) / times.length;
+            const medianDev = times.map(x => Math.abs(x - median)).reduce((a, b) => a + b, 0) / times.length;
+            const cv = stdDev / mean * 100;
+
+            // Range
+            const range = sortedTimes[sortedTimes.length - 1] - sortedTimes[0];
+
+            // First Quartile (Q1)
+            const Q1 = sortedTimes[Math.floor(times.length / 4)];
+
+            // Third Quartile (Q3)
+            const Q3 = sortedTimes[Math.floor(3 * times.length / 4)];
+
+            // Interquartile Range (IQR)
+            const IQR = Q3 - Q1;
+
+            // Skewness
+            const skewness = (times.length / ((times.length - 1) * (times.length - 2))) *
+                times.map(x => Math.pow((x - mean) / stdDev, 3)).reduce((a, b) => a + b, 0);
+
+            // Kurtosis
+            const kurtosis = (times.length * (times.length + 1) / ((times.length - 1) * (times.length - 2) * (times.length - 3))) *
+                times.map(x => Math.pow((x - mean) / stdDev, 4)).reduce((a, b) => a + b, 0) -
+                (3 * Math.pow(times.length - 1, 2) / ((times.length - 2) * (times.length - 3)));
+
+            console.log(mean, median, stdDev, meanDev, medianDev, range, Q1, Q3, IQR, skewness, kurtosis);
+            return { mean, median, stdDev, meanDev, medianDev, range, Q1, Q3, IQR, skewness, kurtosis };
         }
+
         function displayStatisticsTable(allStats, correctStats, incorrectStats, notAttemptedStats) {
             const table = `<h2>Statistics of Result</h2>
                 <table border="1">
@@ -858,36 +894,77 @@
                         <th>Category</th>
                         <th>Mean (s)</th>
                         <th>Median (s)</th>
+                        <th>Q1 (s)</th>
+                        <th>Q3 (s)</th>
+                        <th>IQR (s)</th>
+                        <th>Range (s)</th>
+                        <th>Mean Deviation (s)</th>
+                        <th>Median Deviation (s)</th>
                         <th>Standard Deviation (s)</th>
+                        <th>Skewness</th>
+                        <th>Kurtosis</th>
                     </tr>
                     <tr>
                         <td>All</td>
                         <td>${allStats.mean.toFixed(2)}</td>
                         <td>${allStats.median.toFixed(2)}</td>
+                        <td>${allStats.Q1.toFixed(2)}</td>
+                        <td>${allStats.Q3.toFixed(2)}</td>
+                        <td>${allStats.IQR.toFixed(2)}</td>
+                        <td>${allStats.range.toFixed(2)}</td>
+                        <td>${allStats.meanDev.toFixed(2)}</td>
+                        <td>${allStats.medianDev.toFixed(2)}</td>
                         <td>${allStats.stdDev.toFixed(2)}</td>
+                        <td>${allStats.skewness.toFixed(2)}</td>
+                        <td>${allStats.kurtosis.toFixed(2)}</td>
                     </tr>
                     <tr>
                         <td>Correct</td>
                         <td>${correctStats.mean.toFixed(2)}</td>
                         <td>${correctStats.median.toFixed(2)}</td>
+                        <td>${correctStats.Q1.toFixed(2)}</td>
+                        <td>${correctStats.Q3.toFixed(2)}</td>
+                        <td>${correctStats.IQR.toFixed(2)}</td>
+                        <td>${correctStats.range.toFixed(2)}</td>
+                        <td>${correctStats.meanDev.toFixed(2)}</td>
+                        <td>${correctStats.medianDev.toFixed(2)}</td>
                         <td>${correctStats.stdDev.toFixed(2)}</td>
+                        <td>${correctStats.skewness.toFixed(2)}</td>
+                        <td>${correctStats.kurtosis.toFixed(2)}</td>
                     </tr>
                     <tr>
                         <td>Incorrect</td>
                         <td>${incorrectStats.mean.toFixed(2)}</td>
                         <td>${incorrectStats.median.toFixed(2)}</td>
+                        <td>${incorrectStats.Q1.toFixed(2)}</td>
+                        <td>${incorrectStats.Q3.toFixed(2)}</td>
+                        <td>${incorrectStats.IQR.toFixed(2)}</td>
+                        <td>${incorrectStats.range.toFixed(2)}</td>
+                        <td>${incorrectStats.meanDev.toFixed(2)}</td>
+                        <td>${incorrectStats.medianDev.toFixed(2)}</td>
                         <td>${incorrectStats.stdDev.toFixed(2)}</td>
+                        <td>${incorrectStats.skewness.toFixed(2)}</td>
+                        <td>${incorrectStats.kurtosis.toFixed(2)}</td>
                     </tr>
                     <tr>
                         <td>Not Attempted</td>
                         <td>${notAttemptedStats.mean.toFixed(2)}</td>
                         <td>${notAttemptedStats.median.toFixed(2)}</td>
+                        <td>${notAttemptedStats.Q1.toFixed(2)}</td>
+                        <td>${notAttemptedStats.Q3.toFixed(2)}</td>
+                        <td>${notAttemptedStats.IQR.toFixed(2)}</td>
+                        <td>${notAttemptedStats.range.toFixed(2)}</td>
+                        <td>${notAttemptedStats.meanDev.toFixed(2)}</td>
+                        <td>${notAttemptedStats.medianDev.toFixed(2)}</td>
                         <td>${notAttemptedStats.stdDev.toFixed(2)}</td>
+                        <td>${notAttemptedStats.skewness.toFixed(2)}</td>
+                        <td>${notAttemptedStats.kurtosis.toFixed(2)}</td>
                     </tr>
                 </table>
             `;
             document.getElementById('time-summary').innerHTML = table;
         }
+
         function createGraph(){
             let timeSpent = JSON.parse(localStorage.getItem('timeSpent')) || {};
             const startIndex = parseInt(document.getElementById('startIndex').value) || 1;
