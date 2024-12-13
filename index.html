@@ -290,12 +290,12 @@
         }
         .chart-container canvas { width: 80% ; height: auto ; }
 
-        .histogram-container {
+        /* .histogram-container {
             width: 80%;
             margin: 0 auto;
             padding: 20px;
         }
-        .histogram-container canvas { width: 80% ; height: auto ; }
+        .histogram-container canvas { width: 80% ; height: auto ; } */
         table {
             margin: 0 auto;
             border-collapse: collapse;
@@ -370,8 +370,20 @@
     <div id="chart" class="chart-container">
         <canvas id="timeChart"></canvas>
     </div>
-    <div id="histogram" class="histogram-container">
+    <div id="histogram" class="chart-container">
         <canvas id="histogramChart"></canvas>
+    </div>
+    <div id="allChartContainer" class="chart-container"> 
+        <canvas id="allChart"></canvas> 
+    </div> 
+    <div id="correctChartContainer" class="chart-container"> 
+        <canvas id="correctChart"></canvas> 
+    </div> 
+    <div id="incorrectChartContainer" class="chart-container"> 
+        <canvas id="incorrectChart"></canvas> 
+    </div> 
+    <div id="notAttemptedChartContainer" class="chart-container"> 
+        <canvas id="notAttemptedChart"></canvas> 
     </div>
     <script>
         let startTime;
@@ -1071,6 +1083,278 @@
                     }
                 }
             });
+
+
+            const bins = 100; // Number of bins
+            const maxTime = Math.max(...allTimes, ...correctTimes, ...incorrectTimes, ...notAttemptedTimes);
+            const binWidth = maxTime / bins;
+            /*
+            function getCumulativeData(times) {
+                const cumulativeData = Array(bins).fill(0);
+                times.sort((a, b) => a - b);
+                let cumulativeSum = 0;
+
+                times.forEach(time => {
+                    const binIndex = Math.floor(time / binWidth);
+                    cumulativeSum++;
+                    if (binIndex < bins) {
+                        cumulativeData[binIndex] = cumulativeSum;
+                    }
+                });
+
+                return cumulativeData.map((sum, index) => ({
+                    x: index * binWidth,
+                    y: (sum / times.length) * 100
+                }));
+            }
+            */
+            function getCumulativeData(times, bins = 100) {
+                const binWidth = maxTime / bins;
+                const cumulativeData = Array(bins).fill(0);
+                const sortedTimes = times.slice().sort((a, b) => a - b); // Sort times in ascending order
+
+                let cumulativeSum = 0;
+                let currentIndex = 0;
+
+                for (let i = 0; i < bins; i++) {
+                    const binEnd = binWidth * (i + 1);
+
+                    while (currentIndex < sortedTimes.length && sortedTimes[currentIndex] <= binEnd) {
+                        cumulativeSum++;
+                        currentIndex++;
+                    }
+
+                    cumulativeData[i] = {
+                        x: binEnd,
+                        y: (cumulativeSum / times.length) * 100 // Convert to percentage
+                    };
+                }
+
+                return cumulativeData;
+            }
+
+            const allCumulative = getCumulativeData(allTimes);
+            const correctCumulative = getCumulativeData(correctTimes);
+            const incorrectCumulative = getCumulativeData(incorrectTimes);
+            const notAttemptedCumulative = getCumulativeData(notAttemptedTimes);
+
+            const percentiles = [90, 95, 99];
+
+            /*
+            function getPercentileLines(data) {
+                return percentiles.map(percentile => {
+                    const point = data.find(point => point.y >= percentile);
+                    if (point) {
+                        const xValue = point.x;
+                        return {
+                            type: 'line',
+                            xMin: xValue,
+                            xMax: xValue,
+                            borderColor: 'red',
+                            borderWidth: 2,
+                            label: {
+                                content: `${percentile}%`,
+                                enabled: true,
+                                position: 'end'
+                            }
+                        };
+                    } else {
+                        return null;
+                    }
+                }).filter(line => line !== null);
+            }
+            */
+            function getPercentileLines(data) {
+                const colors = ['red', 'orange', 'blue'];
+                return percentiles.map((percentile, index) => {
+                    const point = data.find(point => point.y >= percentile);
+                    if (point) {
+                        const xValue = point.x;
+                        return {
+                            type: 'line',
+                            xMin: xValue,
+                            xMax: xValue,
+                            borderColor: colors[index],
+                            borderWidth: 2,
+                            label: {
+                                content: `${percentile}%`,
+                                enabled: true,
+                                position: 'end'
+                            }
+                        };
+                    } else {
+                        return null;
+                    }
+                }).filter(line => line !== null);
+            }
+
+
+
+            const ctxAll = document.getElementById('allChart').getContext('2d');
+            new Chart(ctxAll, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'All Questions',
+                        data: allCumulative,
+                        borderColor: 'blue',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Time (seconds)'
+                            },
+                            min: 0,
+                            max: maxTime
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Percentage'
+                            },
+                            min: 0,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        annotation: {
+                            annotations: getPercentileLines(allCumulative)
+                        }
+                    }
+                }
+            });
+
+            const ctxCorrect = document.getElementById('correctChart').getContext('2d');
+            new Chart(ctxCorrect, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Correct Questions',
+                        data: correctCumulative,
+                        borderColor: 'green',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Time (seconds)'
+                            },
+                            min: 0,
+                            max: maxTime
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Percentage'
+                            },
+                            min: 0,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        annotation: {
+                            annotations: getPercentileLines(correctCumulative)
+                        }
+                    }
+                }
+            });
+
+            const ctxIncorrect = document.getElementById('incorrectChart').getContext('2d');
+            new Chart(ctxIncorrect, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Incorrect Questions',
+                        data: incorrectCumulative,
+                        borderColor: 'red',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Time (seconds)'
+                            },
+                            min: 0,
+                            max: maxTime
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Percentage'
+                            },
+                            min: 0,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        annotation: {
+                            annotations: getPercentileLines(incorrectCumulative)
+                        }
+                    }
+                }
+            });
+
+            const ctxNotAttempted = document.getElementById('notAttemptedChart').getContext('2d');
+            new Chart(ctxNotAttempted, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Not Attempted Questions',
+                        data: notAttemptedCumulative,
+                        borderColor: 'gray',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Time (seconds)'
+                            },
+                            min: 0,
+                            max: maxTime
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Percentage'
+                            },
+                            min: 0,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        annotation: {
+                            annotations: getPercentileLines(notAttemptedCumulative)
+                        }
+                    }
+                }
+            });
+
+
             
         }
     </script>
