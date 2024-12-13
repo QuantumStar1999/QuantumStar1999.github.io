@@ -288,8 +288,14 @@
             margin: 0 auto;
             padding: 20px;
         }
+        .chart-container canvas { width: 80% ; height: auto ; }
 
-
+        .histogram-container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .histogram-container canvas { width: 80% ; height: auto ; }
         table {
             margin: 0 auto;
             border-collapse: collapse;
@@ -363,6 +369,9 @@
     <div id="time-summary" class="time-summary-container" style="display: none;"></div>
     <div id="chart" class="chart-container">
         <canvas id="timeChart"></canvas>
+    </div>
+    <div id="histogram" class="histogram-container">
+        <canvas id="histogramChart"></canvas>
     </div>
     <script>
         let startTime;
@@ -913,7 +922,7 @@
             const stdDev = Math.sqrt(times.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / times.length);
 
             // Prepare data for the chart
-            const labels = Object.keys(timeSpents);
+            let labels = Object.keys(timeSpents);
             const data = Object.values(timeSpents);
             const backgroundColors = labels.map(label => {
                 if (responses[label] === 'correct') return 'green';
@@ -935,6 +944,7 @@
                     }]
                 },
                 options: {
+                    responsive: true, maintainAspectRatio: false,
                     scales: {
                         x: {
                             type: 'linear',
@@ -995,7 +1005,73 @@
                     }
                 }
             });
-            // timeChart.register(ChartAnnotation.Annotation);
+            // Helper function to create histogram data
+            function getHistogramData(data, binSize = 30) {
+                const bins = Array.from({ length: Math.ceil(600 / binSize) }, (_, i) => ({
+                    binStart: i * binSize,
+                    count: 0
+                }));
+
+                data.forEach(time => {
+                    const binIndex = Math.min(Math.floor(time / binSize), bins.length - 1);
+                    bins[binIndex].count++;
+                });
+
+                return bins;
+            }
+
+            const binSize = 30; // 30 seconds
+            const allData = getHistogramData(allTimes, binSize);
+            const correctData = getHistogramData(correctTimes, binSize);
+            const incorrectData = getHistogramData(incorrectTimes, binSize);
+
+            hist_labels = allData.map(bin => `${(bin.binStart / 60).toFixed(1)}-${((bin.binStart + binSize) / 60).toFixed(1)} mins`);
+
+            // Prepare data for the histogram chart
+            const datasets = [
+                {
+                    label: 'All Questions',
+                    data: allData.map(bin => bin.count),
+                    backgroundColor: 'rgba(0, 0, 255, 0.5)'
+                },
+                {
+                    label: 'Correct Questions',
+                    data: correctData.map(bin => bin.count),
+                    backgroundColor: 'rgba(0, 255, 0, 0.5)'
+                },
+                {
+                    label: 'Incorrect Questions',
+                    data: incorrectData.map(bin => bin.count),
+                    backgroundColor: 'rgba(255, 0, 0, 0.5)'
+                }
+            ];
+            const ctxHistogram = document.getElementById('histogramChart').getContext('2d');
+            new Chart(ctxHistogram, {
+                type: 'bar',
+                data: {
+                    labels: hist_labels,
+                    datasets: datasets,
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (minutes)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Count'
+                            }
+                        }
+                    }
+                }
+            });
+            
         }
     </script>
 </body>
