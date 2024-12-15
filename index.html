@@ -1753,10 +1753,16 @@
                         label: 'All Questions',
                         data: allCumulative,
                         borderColor: 'blue',
-                        fill: false
+                        fill: false,
+                        tension: .4,
                     }]
                 },
                 options: {
+                    elements: { 
+                        line: { 
+                            cubicInterpolationMode: 'monotone' // You can use 'default' or 'monotone' 
+                        }
+                    },
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
