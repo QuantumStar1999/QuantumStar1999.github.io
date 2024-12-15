@@ -1072,11 +1072,12 @@
                             data: Object.keys(timeSpents).map((label, index) => ({ 
                                 x: label, y: timeSpents[index.toString()] 
                             })),
-                            backgroundColor: Object.keys(timeSpents).map(label => {
+                            backgroundColor: 'royalblue'/*Object.keys(timeSpents).map(label => {
                                             if (responses[label] === 'correct') return 'green';
                                             if (responses[label] === 'incorrect') return 'red';
-                                            return 'grey';
-                                        }),
+                                            return 'grey'; 
+                                            // Not Working for Github pages
+                                        })*/,
                             legendColor: 'royalblue',
                             pointRadius: 5,
                         },
