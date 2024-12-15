@@ -1680,7 +1680,7 @@
             });
 
 
-            const bins = 100; // Number of bins
+            const bins = 500; // Number of bins
             const maxTime = Math.max(...allTimes, ...correctTimes, ...incorrectTimes, ...notAttemptedTimes);
             const binWidth = maxTime / bins;
            
@@ -1732,7 +1732,8 @@
                             label: {
                                 content: `${percentile}%`,
                                 enabled: true,
-                                position: 'end'
+                                position: 'end',
+                                display: true,
                             }
                         };
                     } else {
