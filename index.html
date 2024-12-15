@@ -308,9 +308,9 @@
         }
     </style>
     <!-- Import Chart.js v4.x -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
     <!-- Import chartjs-plugin-annotation for v4.x -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.1.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1"></script>
 </head>
 
 <body>
@@ -395,15 +395,45 @@
 
         let timeSpent = JSON.parse(localStorage.getItem('timeSpent')) || {};
         let history = {};
-        let timeChart;
+        let timeChart, histogramChart,allChart,correctChart,incorrectChart,notAttemptedChart;
 
         let lastTimestamp;
-        let numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
-        let numColumns = parseInt(document.getElementById('numColumns').value) || 4;
-        let startIndex = parseInt(document.getElementById('startIndex').value) || 1;
-        let correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
-        let incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
+        let numQuestions, numColumns, startIndex, correctMarks, incorrectMarks;
 
+        if(localStorage.getItem('numQuestions')){
+            document.getElementById('numQuestions').value = localStorage.getItem('numQuestions');
+            numQuestions = parseInt(localStorage.getItem('numQuestions'));
+        }
+        else numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
+        
+        if(localStorage.getItem('numColumns')){
+            document.getElementById('numColumns').value = localStorage.getItem('numColumns');
+            numColumns = parseInt(localStorage.getItem('numColumns'));
+        }
+        else numColumns = parseInt(document.getElementById('numColumns').value) || 4;
+
+        if(localStorage.getItem('startIndex')){
+            document.getElementById('startIndex').value = localStorage.getItem('startIndex');
+            startIndex = parseInt(localStorage.getItem('startIndex'));
+        }
+        else startIndex = parseInt(document.getElementById('startIndex').value) || 1;
+
+        if(localStorage.getItem('correctMarks')){
+            document.getElementById('correctMarks').value = localStorage.getItem('correctMarks');
+            correctMarks = parseInt(localStorage.getItem('correctMarks'));
+
+        }
+        else correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
+
+        if(localStorage.getItem('incorrectMarks')){
+            document.getElementById('incorrectMarks').value = localStorage.getItem('incorrectMarks');
+            correctMarks = parseInt(localStorage.getItem('incorrectMarks'));
+        }
+        else incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
+
+        // generateForm();
+        // submitForm();
+        // showSummary();
 
         document.getElementById('startButton').addEventListener('click', function() {
             
@@ -850,7 +880,9 @@
                 const IQR = 0;
                 const kurtosis = 0;
                 const skewness = 0;
-                return { mean, median, stdDev, meanDev, medianDev, range, Q1, Q3, IQR, skewness, kurtosis };
+                const b1 = 0;
+                const g1 = 0;
+                return { mean, median, stdDev, meanDev, medianDev, range, Q1, Q3, IQR, skewness, kurtosis, b1, g1,};
             }
 
             const mean = times.reduce((a, b) => a + b, 0) / times.length;
@@ -882,9 +914,13 @@
             const kurtosis = (times.length * (times.length + 1) / ((times.length - 1) * (times.length - 2) * (times.length - 3))) *
                 times.map(x => Math.pow((x - mean) / stdDev, 4)).reduce((a, b) => a + b, 0) -
                 (3 * Math.pow(times.length - 1, 2) / ((times.length - 2) * (times.length - 3)));
-
-            console.log(mean, median, stdDev, meanDev, medianDev, range, Q1, Q3, IQR, skewness, kurtosis);
-            return { mean, median, stdDev, meanDev, medianDev, range, Q1, Q3, IQR, skewness, kurtosis };
+            
+            const m3 = times.map(x => Math.pow(x - mean, 3)).reduce((a, b) => a + b, 0) / times.length;
+            const s = Math.sqrt(times.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b, 0) / (times.length-1));;
+            const b1 = m3/Math.pow(s,3); 
+            const g1 = m3/Math.pow(stdDev,3);
+            console.log(mean, median, stdDev, meanDev, medianDev, range, Q1, Q3, IQR, skewness, kurtosis, b1, g1);
+            return { mean, median, stdDev, meanDev, medianDev, range, Q1, Q3, IQR, skewness, kurtosis, b1, g1 };
         }
 
         function displayStatisticsTable(allStats, correctStats, incorrectStats, notAttemptedStats) {
@@ -903,6 +939,8 @@
                         <th>Standard Deviation (s)</th>
                         <th>Skewness</th>
                         <th>Kurtosis</th>
+                        <th>b1</th>
+                        <th>g1</th>
                     </tr>
                     <tr>
                         <td>All</td>
@@ -917,6 +955,8 @@
                         <td>${allStats.stdDev.toFixed(2)}</td>
                         <td>${allStats.skewness.toFixed(2)}</td>
                         <td>${allStats.kurtosis.toFixed(2)}</td>
+                        <td>${allStats.b1.toFixed(2)}</td>
+                        <td>${allStats.g1.toFixed(2)}</td>
                     </tr>
                     <tr>
                         <td>Correct</td>
@@ -931,6 +971,8 @@
                         <td>${correctStats.stdDev.toFixed(2)}</td>
                         <td>${correctStats.skewness.toFixed(2)}</td>
                         <td>${correctStats.kurtosis.toFixed(2)}</td>
+                        <td>${correctStats.b1.toFixed(2)}</td>
+                        <td>${correctStats.g1.toFixed(2)}</td>
                     </tr>
                     <tr>
                         <td>Incorrect</td>
@@ -945,6 +987,8 @@
                         <td>${incorrectStats.stdDev.toFixed(2)}</td>
                         <td>${incorrectStats.skewness.toFixed(2)}</td>
                         <td>${incorrectStats.kurtosis.toFixed(2)}</td>
+                        <td>${incorrectStats.b1.toFixed(2)}</td>
+                        <td>${incorrectStats.g1.toFixed(2)}</td>
                     </tr>
                     <tr>
                         <td>Not Attempted</td>
@@ -959,6 +1003,8 @@
                         <td>${notAttemptedStats.stdDev.toFixed(2)}</td>
                         <td>${notAttemptedStats.skewness.toFixed(2)}</td>
                         <td>${notAttemptedStats.kurtosis.toFixed(2)}</td>
+                        <td>${notAttemptedStats.b1.toFixed(2)}</td>
+                        <td>${notAttemptedStats.g1.toFixed(2)}</td>
                     </tr>
                 </table>
             `;
@@ -1007,39 +1053,74 @@
             displayStatisticsTable(allStats, correctStats, incorrectStats, notAttemptedStats);
 
             // Prepare data for the chart
-            
             const correct_data =  Object.keys(responses).filter(key =>responses[key]=='correct').map(val =>({x:val,y:timeSpents[val.toString()]}) );
             const incorrect_data =  Object.keys(responses).filter(key =>responses[key]=='incorrect').map(val =>({x:val,y:timeSpents[val.toString()]}) );
             const notAttempted_data =  Object.keys(responses).filter(key =>responses[key]=='not_attempted').map(val =>({x:val,y:timeSpents[val.toString()]}) );
+            
             // Create the chart
             const ctx = document.getElementById('timeChart').getContext('2d');
+            
+            if (timeChart) { timeChart.destroy();}
+
             timeChart = new Chart(ctx, {
                 type: 'scatter',
                 data: {
                     labels: Object.keys(timeSpents),
                     datasets: [
                         {
+                            label: 'All',
+                            data: Object.keys(timeSpents).map((label, index) => ({ 
+                                x: label, y: timeSpents[index.toString()] 
+                            })),
+                            backgroundColor: Object.keys(timeSpents).map(label => {
+                                            if (responses[label] === 'correct') return 'green';
+                                            if (responses[label] === 'incorrect') return 'red';
+                                            return 'grey';
+                                        }),
+                            legendColor: 'royalblue',
+                            pointRadius: 5,
+                        },
+                        {
                             label: 'Correct',
                             data: correct_data,
                             backgroundColor: 'green',
-                            pointRadius: 5
+                            pointRadius: 5,
+                            hidden: true,
                         },
                         {
-                            label: 'Incorrect ',
+                            label: 'Incorrect',
                             data: incorrect_data,
                             backgroundColor: 'red',
-                            pointRadius: 5
+                            pointRadius: 5,
+                            hidden: true,
                         },
                         {
                             label: 'Not Attempted',
                             data: notAttempted_data,
                             backgroundColor: 'grey',
-                            pointRadius: 5
+                            pointRadius: 5,
+                            hidden: true,
+                        },
+                        {
+                            label: 'Mean Lines', // Add this dataset for the annotations
+                            data: [], // Empty data for the annotations
+                            backgroundColor: 'orange',
+                            hidden: false, // Show by default
+                            // click: (ctx) =>{
+                            //     ctx.chart.update();
+                            // } 
+                        },
+                        {
+                            label: 'Median Lines', // Add this dataset for the annotations
+                            data: [], // Empty data for the annotations
+                            backgroundColor: 'brown',
+                            hidden: false // Show by default
                         },
                     ]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: false,
+                    responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         x: {
                             type: 'linear',
@@ -1057,9 +1138,11 @@
                         }
                     },
                     plugins: {
+                        // custom_annotation: true,
                         annotation: {
                             annotations: {
-                                meanLine: {
+                                // Line for All Options
+                                meanLine_0: {
                                     type: 'line',
                                     yMin: allStats.mean,
                                     yMax: allStats.mean,
@@ -1068,10 +1151,12 @@
                                     label: {
                                         content: 'Mean',
                                         enabled: true,
-                                        position: 'start'
-                                    }
+                                        position: 'start',
+                                        display: true,
+                                    },
+                                    // display: true,
                                 },
-                                upperStdDevLine: {
+                                upperStdDevLine_0: {
                                     type: 'line',
                                     yMin: allStats.mean + 3 * allStats.stdDev,
                                     yMax: allStats.mean + 3 * allStats.stdDev,
@@ -1080,10 +1165,12 @@
                                     label: {
                                         content: 'Mean + 3*SD',
                                         enabled: true,
-                                        position: 'start'
-                                    }
+                                        position: 'start',
+                                        display: true,
+                                    },
+                                    display: true,
                                 },
-                                lowerStdDevLine: {
+                                lowerStdDevLine_0: {
                                     type: 'line',
                                     yMin: allStats.mean - 3 * allStats.stdDev,
                                     yMax: allStats.mean - 3 * allStats.stdDev,
@@ -1092,14 +1179,430 @@
                                     label: {
                                         content: 'Mean - 3*SD',
                                         enabled: true,
-                                        position: 'start'
-                                    }
-                                }
+                                        position: 'start',
+                                        display: true,
+                                    },
+                                    // display: true,
+                                },
+                                lowerIQRLine_0: { 
+                                    type: 'line', 
+                                    yMin: allStats.Q1 - 1.5 * allStats.IQR, 
+                                    yMax: allStats.Q1 - 1.5 * allStats.IQR, 
+                                    borderColor: 'brown', 
+                                    borderWidth: 2, 
+                                    borderDash: [10, 5], 
+                                    label: { 
+                                        content: 'Q1 - 1.5*IQR', 
+                                        enabled: true, 
+                                        position: 'end',
+                                        display: true,
+                                    },
+                                    // display: true,
+                                }, 
+                                upperIQRLine_0: { 
+                                    type: 'line', 
+                                    yMin: allStats.Q3 + 1.5 * allStats.IQR, 
+                                    yMax: allStats.Q3 + 1.5 * allStats.IQR, 
+                                    borderColor: 'brown', 
+                                    borderWidth: 2, 
+                                    borderDash: [10, 5], 
+                                    label: { 
+                                        content: 'Q3 + 1.5*IQR', 
+                                        enabled: true, 
+                                        position: 'end',
+                                        display: true, 
+                                    },
+                                    // display: true
+                                }, 
+                                medianLine_0: { 
+                                    type: 'line', 
+                                    yMin: allStats.median, 
+                                    yMax: allStats.median, 
+                                    borderColor: 'purple', 
+                                    borderWidth: 2,
+                                    borderDash: [10, 5], 
+                                    label: { 
+                                        content: 'Median', 
+                                        enabled: true, 
+                                        position: 'end',
+                                        display: true, 
+                                    },
+                                    // display: true,
+                                },
+                                // Line for Correct Options
+                                meanLine_1: {
+                                    type: 'line',
+                                    yMin: correctStats.mean,
+                                    yMax: correctStats.mean,
+                                    borderColor: 'blue',
+                                    borderWidth: 2,
+                                    label: {
+                                        content: 'Mean (Correct)',
+                                        enabled: true,
+                                        position: 'start',
+                                        display: true,
+                                    },
+                                    display: false,
+                                },
+                                upperStdDevLine_1: {
+                                    type: 'line',
+                                    yMin: correctStats.mean + 3 * correctStats.stdDev,
+                                    yMax: correctStats.mean + 3 * correctStats.stdDev,
+                                    borderColor: 'orange',
+                                    borderWidth: 2,
+                                    label: {
+                                        content: 'Mean + 3*SD (Correct)',
+                                        enabled: true,
+                                        position: 'start',
+                                        display: true,
+                                    },
+                                    display: false,
+                                },
+                                lowerStdDevLine_1: {
+                                    type: 'line',
+                                    yMin: correctStats.mean - 3 * correctStats.stdDev,
+                                    yMax: correctStats.mean - 3 * correctStats.stdDev,
+                                    borderColor: 'orange',
+                                    borderWidth: 2,
+                                    label: {
+                                        content: 'Mean - 3*SD (Correct)',
+                                        enabled: true,
+                                        position: 'start',
+                                        display: true,
+                                    },
+                                    display: false,
+                                },
+                                lowerIQRLine_1: { 
+                                    type: 'line', 
+                                    yMin: correctStats.Q1 - 1.5 * correctStats.IQR, 
+                                    yMax: correctStats.Q1 - 1.5 * correctStats.IQR, 
+                                    borderColor: 'brown', 
+                                    borderWidth: 2, 
+                                    borderDash: [10, 5], 
+                                    label: { 
+                                        content: 'Q1 - 1.5*IQR (Correct)', 
+                                        enabled: true, 
+                                        position: 'end' ,
+                                        display: true,
+                                    },
+                                    display: false,
+                                }, 
+                                upperIQRLine_1: { 
+                                    type: 'line', 
+                                    yMin: correctStats.Q3 + 1.5 * correctStats.IQR, 
+                                    yMax: correctStats.Q3 + 1.5 * correctStats.IQR, 
+                                    borderColor: 'brown', 
+                                    borderWidth: 2, 
+                                    borderDash: [10, 5], 
+                                    label: { 
+                                        content: 'Q3 + 1.5*IQR (Correct)', 
+                                        enabled: true, 
+                                        position: 'end' ,
+                                        display: true,
+                                    },
+                                    display: false,
+                                }, 
+                                medianLine_1: { 
+                                    type: 'line', 
+                                    yMin: correctStats.median, 
+                                    yMax: correctStats.median, 
+                                    borderColor: 'purple', 
+                                    borderWidth: 2,
+                                    borderDash: [10, 5], 
+                                    label: { 
+                                        content: 'Median (Correct)', 
+                                        enabled: true, 
+                                        position: 'end' ,
+                                        display: true,
+                                    },
+                                    display: false,
+                                },
+                                // Line for Incorrect Options
+                                meanLine_2: {
+                                    type: 'line',
+                                    yMin: incorrectStats.mean,
+                                    yMax: incorrectStats.mean,
+                                    borderColor: 'blue',
+                                    borderWidth: 2,
+                                    label: {
+                                        content: 'Mean (Incorrect)',
+                                        enabled: true,
+                                        position: 'start',
+                                        display: true,
+                                    },
+                                    display: false,
+                                },
+                                upperStdDevLine_2: {
+                                    type: 'line',
+                                    yMin: incorrectStats.mean + 3 * incorrectStats.stdDev,
+                                    yMax: incorrectStats.mean + 3 * incorrectStats.stdDev,
+                                    borderColor: 'orange',
+                                    borderWidth: 2,
+                                    label: {
+                                        content: 'Mean + 3*SD (Incorrect)',
+                                        enabled: true,
+                                        position: 'start',
+                                        display: true,
+                                    },
+                                    display: false,
+                                },
+                                lowerStdDevLine_2: {
+                                    type: 'line',
+                                    yMin: incorrectStats.mean - 3 * incorrectStats.stdDev,
+                                    yMax: incorrectStats.mean - 3 * incorrectStats.stdDev,
+                                    borderColor: 'orange',
+                                    borderWidth: 2,
+                                    label: {
+                                        content: 'Mean - 3*SD (Incorrect)',
+                                        enabled: true,
+                                        position: 'start',
+                                        display: true,
+                                    },
+                                    display: false,
+                                },
+                                lowerIQRLine_2: { 
+                                    type: 'line', 
+                                    yMin: incorrectStats.Q1 - 1.5 * incorrectStats.IQR, 
+                                    yMax: incorrectStats.Q1 - 1.5 * incorrectStats.IQR, 
+                                    borderColor: 'brown', 
+                                    borderWidth: 2, 
+                                    borderDash: [10, 5], 
+                                    label: { 
+                                        content: 'Q1 - 1.5*IQR (Incorrect)', 
+                                        enabled: true, 
+                                        position: 'end' ,
+                                        display: true,
+                                    },
+                                    display: false,
+                                }, 
+                                upperIQRLine_2: { 
+                                    type: 'line', 
+                                    yMin: incorrectStats.Q3 + 1.5 * incorrectStats.IQR, 
+                                    yMax: incorrectStats.Q3 + 1.5 * incorrectStats.IQR, 
+                                    borderColor: 'brown', 
+                                    borderWidth: 2, 
+                                    borderDash: [10, 5], 
+                                    label: { 
+                                        content: 'Q3 + 1.5*IQR (Incorrect)', 
+                                        enabled: true, 
+                                        position: 'end' ,
+                                        display: true,
+                                    },
+                                    display: false,
+                                }, 
+                                medianLine_2: { 
+                                    type: 'line', 
+                                    yMin: incorrectStats.median, 
+                                    yMax: incorrectStats.median, 
+                                    borderColor: 'purple', 
+                                    borderWidth: 2,
+                                    borderDash: [10, 5], 
+                                    label: { 
+                                        content: 'Median (Incorrect)', 
+                                        enabled: true, 
+                                        position: 'end' ,
+                                        display: true,
+                                    },
+                                    display: false,
+                                },
+                                // Line for Not Attempted
+                                meanLine_3: {
+                                    type: 'line',
+                                    yMin: notAttemptedStats.mean,
+                                    yMax: notAttemptedStats.mean,
+                                    borderColor: 'blue',
+                                    borderWidth: 2,
+                                    label: {
+                                        content: 'Mean (NA)',
+                                        enabled: true,
+                                        position: 'start',
+                                        display: true,
+                                    },
+                                    display: false,
+                                },
+                                upperStdDevLine_3: {
+                                    type: 'line',
+                                    yMin: notAttemptedStats.mean + 3 * notAttemptedStats.stdDev,
+                                    yMax: notAttemptedStats.mean + 3 * notAttemptedStats.stdDev,
+                                    borderColor: 'orange',
+                                    borderWidth: 2,
+                                    label: {
+                                        content: 'Mean + 3*SD (NA)',
+                                        enabled: true,
+                                        position: 'start',
+                                        display: true,
+                                    },
+                                    display: false,
+                                },
+                                lowerStdDevLine_3: {
+                                    type: 'line',
+                                    yMin: notAttemptedStats.mean - 3 * notAttemptedStats.stdDev,
+                                    yMax: notAttemptedStats.mean - 3 * notAttemptedStats.stdDev,
+                                    borderColor: 'orange',
+                                    borderWidth: 2,
+                                    label: {
+                                        content: 'Mean - 3*SD (NA)',
+                                        enabled: true,
+                                        position: 'start',
+                                        display: true,
+                                    },
+                                    display: false,
+                                },
+                                lowerIQRLine_3: { 
+                                    type: 'line', 
+                                    yMin: notAttemptedStats.Q1 - 1.5 * notAttemptedStats.IQR, 
+                                    yMax: notAttemptedStats.Q1 - 1.5 * notAttemptedStats.IQR, 
+                                    borderColor: 'brown', 
+                                    borderWidth: 2, 
+                                    borderDash: [10, 5], 
+                                    label: { 
+                                        content: 'Q1 - 1.5*IQR (NA)', 
+                                        enabled: true, 
+                                        position: 'end',
+                                        display: true,
+                                    },
+                                    display: false,
+                                }, 
+                                upperIQRLine_3: { 
+                                    type: 'line', 
+                                    yMin: notAttemptedStats.Q3 + 1.5 * notAttemptedStats.IQR, 
+                                    yMax: notAttemptedStats.Q3 + 1.5 * notAttemptedStats.IQR, 
+                                    borderColor: 'brown', 
+                                    borderWidth: 2, 
+                                    borderDash: [10, 5], 
+                                    label: { 
+                                        content: 'Q3 + 1.5*IQR (NA)', 
+                                        enabled: true, 
+                                        position: 'end',
+                                        display: true, 
+                                    },
+                                    display: false,
+                                }, 
+                                medianLine_3: { 
+                                    type: 'line', 
+                                    yMin: notAttemptedStats.median, 
+                                    yMax: notAttemptedStats.median, 
+                                    borderColor: 'purple', 
+                                    borderWidth: 2,
+                                    borderDash: [10, 5], 
+                                    label: { 
+                                        content: 'Median (NA)', 
+                                        enabled: true, 
+                                        position: 'end',
+                                        display: true, 
+                                    },
+                                    display: false,
+                                },
                             }
-                        }
+                        },
+                        
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            // onHover: ()=> {
+                            //     console.log("hovering");
+                            // },
+                            onClick: (e, legendItem, legend) =>{
+                                    const index = legendItem.datasetIndex;
+                                    
+                                    const ci = legend.chart;
+                                    if( index < 4 ){
+                                        
+                                        if(ci.isDatasetVisible(index)){
+                                            legendItem.hidden = true;
+                                            ci.hide(index);
+                                            ci.options.plugins.annotation.annotations[`meanLine_${index}`].display = false;
+                                            ci.options.plugins.annotation.annotations[`upperStdDevLine_${index}`].display = false;
+                                            ci.options.plugins.annotation.annotations[`lowerStdDevLine_${index}`].display = false;
+                                            // so on
+                                            ci.options.plugins.annotation.annotations[`medianLine_${index}`].display = false;
+                                            ci.options.plugins.annotation.annotations[`upperIQRLine_${index}`].display = false;
+                                            ci.options.plugins.annotation.annotations[`lowerIQRLine_${index}`].display = false;
+                                        }
+                                        else{
+                                            legendItem.hidden = false;
+                                            ci.show(index);
+                                            ci.options.plugins.annotation.annotations[`meanLine_${index}`].display = ci.isDatasetVisible(4);
+                                            ci.options.plugins.annotation.annotations[`upperStdDevLine_${index}`].display = ci.isDatasetVisible(4);;
+                                            ci.options.plugins.annotation.annotations[`lowerStdDevLine_${index}`].display = ci.isDatasetVisible(4);;
+                                            // so on
+                                            ci.options.plugins.annotation.annotations[`medianLine_${index}`].display = ci.isDatasetVisible(5);;
+                                            ci.options.plugins.annotation.annotations[`upperIQRLine_${index}`].display = ci.isDatasetVisible(5);;
+                                            ci.options.plugins.annotation.annotations[`lowerIQRLine_${index}`].display = ci.isDatasetVisible(5);;
+                                        }
+                                    }
+                                    else{
+                                        let di;
+                                        for(let i=0;i<4;i++){
+                                            if(!ci.data.datasets[i].hidden) {
+                                                di = i;
+                                            }
+                                        }
+                                        console.log("di: ",di);
+                                        if(index===4){
+                                            ci.options.plugins.annotation.annotations[`meanLine_${di}`].display = !ci.isDatasetVisible(index);
+                                            ci.options.plugins.annotation.annotations[`upperStdDevLine_${di}`].display = !ci.isDatasetVisible(index);
+                                            ci.options.plugins.annotation.annotations[`lowerStdDevLine_${di}`].display = !ci.isDatasetVisible(index);
+                                            
+                                        }
+                                        if(index===5){
+                                            ci.options.plugins.annotation.annotations[`medianLine_${di}`].display = !ci.isDatasetVisible(index);
+                                            ci.options.plugins.annotation.annotations[`upperIQRLine_${di}`].display = !ci.isDatasetVisible(index);
+                                            ci.options.plugins.annotation.annotations[`lowerIQRLine_${di}`].display = !ci.isDatasetVisible(index);
+                                        }
+                                        
+                                        if(ci.isDatasetVisible(index)){ 
+                                            ci.hide(index);
+                                            legendItem.hidden = true;
+                                        }
+                                        else {
+                                            ci.show(index);
+                                            legendItem.hidden = false;
+                                        }
+                                    }
+                                    // if (ci.isDatasetVisible(index)) {
+                                    //     ci.hide(index);
+                                    //     legendItem.hidden = true;
+                                    //     if(index===4){
+                                    //         ci.options.plugins.annotation.annotations['meanLine'].display = false;
+                                    //     }
+                                    //     else{console.log("index not 4");}
+                                    // } else {
+                                    //     ci.show(index);
+                                    //     legendItem.hidden = false;
+                                    //     if(index===4){
+                                    //         ci.options.plugins.annotation.annotations['meanLine'].display = true;
+                                    //     }
+                                    // }
+                                    ci.update();
+                            },
+                            labels: {
+                                generateLabels: (chart) => {
+                                    const datasetLabels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+
+                                    // Customize legend color based on dataset properties
+                                    datasetLabels.forEach(label => {
+                                        const dataset = chart.data.datasets[label.datasetIndex];
+                                        if (dataset.label === 'All' && dataset.legendColor) {
+                                            label.fillStyle = dataset.legendColor;
+                                            label.strokeStyle = dataset.legendColor;
+                                        }
+                                        
+                                    });
+                                    return datasetLabels;
+                                    
+                                }
+                            },
+                            
+
+                        },
+                        /*end of legend*/
+                        
                     }
                 }
             });
+            
+            
             // Helper function to create histogram data
             function getHistogramData(data, binSize = 30) {
                 const bins = Array.from({ length: Math.ceil(600 / binSize) }, (_, i) => ({
@@ -1146,8 +1649,10 @@
                     backgroundColor: 'rgba(138, 0, 241, 0.8)'
                 },
             ];
+            if (histogramChart) { histogramChart.destroy();}
             const ctxHistogram = document.getElementById('histogramChart').getContext('2d');
-            new Chart(ctxHistogram, {
+            
+            histogramChart = new Chart(ctxHistogram, {
                 type: 'bar',
                 data: {
                     labels: hist_labels,
@@ -1177,26 +1682,7 @@
             const bins = 100; // Number of bins
             const maxTime = Math.max(...allTimes, ...correctTimes, ...incorrectTimes, ...notAttemptedTimes);
             const binWidth = maxTime / bins;
-            /*
-            function getCumulativeData(times) {
-                const cumulativeData = Array(bins).fill(0);
-                times.sort((a, b) => a - b);
-                let cumulativeSum = 0;
-
-                times.forEach(time => {
-                    const binIndex = Math.floor(time / binWidth);
-                    cumulativeSum++;
-                    if (binIndex < bins) {
-                        cumulativeData[binIndex] = cumulativeSum;
-                    }
-                });
-
-                return cumulativeData.map((sum, index) => ({
-                    x: index * binWidth,
-                    y: (sum / times.length) * 100
-                }));
-            }
-            */
+           
             function getCumulativeData(times, bins = 100) {
                 const binWidth = maxTime / bins;
                 const cumulativeData = Array(bins).fill(0);
@@ -1229,30 +1715,7 @@
 
             const percentiles = [90, 95, 99];
 
-            /*
-            function getPercentileLines(data) {
-                return percentiles.map(percentile => {
-                    const point = data.find(point => point.y >= percentile);
-                    if (point) {
-                        const xValue = point.x;
-                        return {
-                            type: 'line',
-                            xMin: xValue,
-                            xMax: xValue,
-                            borderColor: 'red',
-                            borderWidth: 2,
-                            label: {
-                                content: `${percentile}%`,
-                                enabled: true,
-                                position: 'end'
-                            }
-                        };
-                    } else {
-                        return null;
-                    }
-                }).filter(line => line !== null);
-            }
-            */
+           
             function getPercentileLines(data) {
                 const colors = ['red', 'orange', 'blue'];
                 return percentiles.map((percentile, index) => {
@@ -1280,7 +1743,8 @@
 
 
             const ctxAll = document.getElementById('allChart').getContext('2d');
-            new Chart(ctxAll, {
+            if(allChart){allChart.destroy();}
+            allChart = new Chart(ctxAll, {
                 type: 'line',
                 data: {
                     datasets: [{
@@ -1319,9 +1783,9 @@
                     }
                 }
             });
-
+            if(correctChart){correctChart.destroy();}
             const ctxCorrect = document.getElementById('correctChart').getContext('2d');
-            new Chart(ctxCorrect, {
+            correctChart =  new Chart(ctxCorrect, {
                 type: 'line',
                 data: {
                     datasets: [{
@@ -1360,9 +1824,9 @@
                     }
                 }
             });
-
+            if(incorrectChart){incorrectChart.destroy();}
             const ctxIncorrect = document.getElementById('incorrectChart').getContext('2d');
-            new Chart(ctxIncorrect, {
+            incorrectChart = new Chart(ctxIncorrect, {
                 type: 'line',
                 data: {
                     datasets: [{
@@ -1401,9 +1865,9 @@
                     }
                 }
             });
-
+            if(notAttemptedChart){notAttemptedChart.destroy();}
             const ctxNotAttempted = document.getElementById('notAttemptedChart').getContext('2d');
-            new Chart(ctxNotAttempted, {
+            notAttemptedChart = new Chart(ctxNotAttempted, {
                 type: 'line',
                 data: {
                     datasets: [{
@@ -1442,6 +1906,7 @@
                     }
                 }
             });
+            
 
 
             
