@@ -1684,7 +1684,7 @@
             const maxTime = Math.max(...allTimes, ...correctTimes, ...incorrectTimes, ...notAttemptedTimes);
             const binWidth = maxTime / bins;
            
-            function getCumulativeData(times, bins = 100) {
+            function getCumulativeData(times, bins = numQuestions) {
                 const binWidth = maxTime / bins;
                 const cumulativeData = Array(bins).fill(0);
                 const sortedTimes = times.slice().sort((a, b) => a - b); // Sort times in ascending order
