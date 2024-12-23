@@ -1693,7 +1693,7 @@
             const maxTime = Math.max(...allTimes, ...correctTimes, ...incorrectTimes, ...notAttemptedTimes);
             const binWidth = maxTime / bins;
            
-            function getCumulativeData(times, bins = numQuestions) {
+            function getCumulativeData(times, bins = 500) {
                 const binWidth = maxTime / bins;
                 const cumulativeData = Array(bins).fill(0);
                 const sortedTimes = times.slice().sort((a, b) => a - b); // Sort times in ascending order
@@ -1726,20 +1726,23 @@
             const percentiles = [90, 95, 99];
 
            
-            function getPercentileLines(data) {
-                const colors = ['red', 'orange', 'blue'];
+            function getPercentileLines(data, color,name) {
+                // const colors = ['red', 'orange', 'blue'];
+                
                 return percentiles.map((percentile, index) => {
                     const point = data.find(point => point.y >= percentile);
                     if (point) {
                         const xValue = point.x;
                         return {
+                            id: `${name}_${percentile}`,
                             type: 'line',
                             xMin: xValue,
                             xMax: xValue,
-                            borderColor: colors[index],
+                            borderColor: color, // color = colors[index];
                             borderWidth: 2,
+                            display: true,
                             label: {
-                                content: `${percentile}%`,
+                                content: `${name.slice(0,3)}:${percentile}%`,
                                 enabled: true,
                                 position: 'end',
                                 display: true,
@@ -1755,16 +1758,171 @@
 
             const ctxAll = document.getElementById('allChart').getContext('2d');
             if(allChart){allChart.destroy();}
+
+            // function getPercentileLines(data, color) {
+            //     return percentiles.map(percentile => {
+            //         const point = data.find(point => point.y >= percentile);
+            //         if (point) {
+            //             const xValue = point.x;
+            //             return {
+            //                 type: 'line',
+            //                 xMin: xValue,
+            //                 xMax: xValue,
+            //                 borderColor: color,
+            //                 borderWidth: 2,
+            //                 label: {
+            //                     content: `${percentile}%`,
+            //                     enabled: true,
+            //                     position: 'end',
+            //                     display: true,
+            //                 }
+            //             };
+            //         } else {
+            //             return null;
+            //         }
+            //     }).filter(line => line !== null);
+            // }
+
+            const datasetsForCum = [
+                {
+                    label: 'All Questions',
+                    data: allCumulative,
+                    borderColor: 'blue',
+                    fill: false,
+                    tension: .4,
+                    annotations: getPercentileLines(allCumulative, 'blue','all'),
+                },
+                {
+                    label: 'Correct Questions',
+                    data: correctCumulative,
+                    borderColor: 'green',
+                    fill: false,
+                    annotations: getPercentileLines(correctCumulative, 'green','correct'),
+                },
+                {
+                    label: 'Incorrect Questions',
+                    data: incorrectCumulative,
+                    borderColor: 'red',
+                    fill: false,
+                    annotations: getPercentileLines(incorrectCumulative, 'red','incorrect'),
+                },
+                {
+                    label: 'Not Attempted Questions',
+                    data: notAttemptedCumulative,
+                    borderColor: 'gray',
+                    fill: false,
+                    annotations: getPercentileLines(notAttemptedCumulative, 'gray','unattempted'),
+                }
+            ];
+
+            // allChart = document.getElementById('allChart').getContext('2d');
+            // if (combinedChart) { combinedChart.destroy(); }
             allChart = new Chart(ctxAll, {
                 type: 'line',
                 data: {
-                    datasets: [{
-                        label: 'All Questions',
-                        data: allCumulative,
-                        borderColor: 'blue',
-                        fill: false,
-                        tension: .4,
-                    }]
+                    datasets: datasetsForCum
+                },
+                options: {
+                    elements: {
+                        line: {
+                            cubicInterpolationMode: 'monotone'
+                        }
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Time (seconds)'
+                            },
+                            min: 0,
+                            max: maxTime
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Percentage'
+                            },
+                            min: 0,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        annotation: {
+                            annotations: datasetsForCum.flatMap(dataset => dataset.annotations)
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            // onHover: ()=> {
+                            //     console.log("hovering");
+                            // },
+                            onClick: (e, legendItem, legend) =>{
+                                const index = legendItem.datasetIndex;
+                                const ci = legend.chart;
+                                const names = ['all','correct', 'incorrect', 'unattempted'];
+                                const annot = ci.options.plugins.annotation.annotations;
+                                if(ci.isDatasetVisible(index)){
+                                    legendItem.hidden = true;
+                                    ci.hide(index);
+
+                                    annot[3*index].display = false;
+                                    annot[3*index+1].display = false;
+                                    annot[3*index+2].display = false;
+
+                                    /*for(const percent of percentiles){
+                                        // const item = annot.find(item => item.id===`${names[index]}_${percent}`);
+                                        // if(item) item.display = false;
+                                        console.log(annot[3*index]);
+                                        console.log(annot[3*index].id);
+                                        console.log(annot[3*index].display);
+
+                                        // console.log(ci.options.plugins.annotation.annotations);
+                                    }*/
+                                }
+                                else{
+                                    legendItem.hidden = false;
+                                    ci.show(index);
+                                    annot[3*index].display = true;
+                                    annot[3*index+1].display = true;
+                                    annot[3*index+2].display = true;
+                                    /*for(const percent of percentiles){
+                                        // const item = annot.find(item => item.id===`${names[index]}_${percent}`);
+                                        // if(item) item.display = true;
+                                        // console.log(ci.options.plugins.annotation.annotations[0]);
+                                        
+                                        // console.log(annot.find(item => item.id===`${names[index]}_${percent}`));
+
+                                    }*/
+                                }
+                                ci.update();
+                            }
+                        }
+                    }
+                }
+            });
+
+            /*
+            allChart = new Chart(ctxAll, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'All Questions',
+                            data: allCumulative,
+                            borderColor: 'blue',
+                            fill: false,
+                            tension: .4,
+                        },
+                        // {
+                        //     label: 'Correct Questions',
+                        //     data: correctCumulative,
+                        //     borderColor: 'green',
+                        //     fill: false,
+                        // }
+                    ]
                 },
                 options: {
                     elements: { 
@@ -1923,7 +2081,7 @@
                     }
                 }
             });
-            
+            */
 
 
             
