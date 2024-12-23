@@ -1523,6 +1523,15 @@
                                         else{
                                             legendItem.hidden = false;
                                             ci.show(index);
+                                            // for(let i=0;i<4;i++){
+                                            //     ci.options.plugins.annotation.annotations[`meanLine_${i}`].display = false;
+                                            //     ci.options.plugins.annotation.annotations[`upperStdDevLine_${i}`].display = false;
+                                            //     ci.options.plugins.annotation.annotations[`lowerStdDevLine_${i}`].display = false;
+                                            //     // so on
+                                            //     ci.options.plugins.annotation.annotations[`medianLine_${i}`].display = false;
+                                            //     ci.options.plugins.annotation.annotations[`upperIQRLine_${i}`].display = false;
+                                            //     ci.options.plugins.annotation.annotations[`lowerIQRLine_${i}`].display = false;
+                                            // }
                                             ci.options.plugins.annotation.annotations[`meanLine_${index}`].display = ci.isDatasetVisible(4);
                                             ci.options.plugins.annotation.annotations[`upperStdDevLine_${index}`].display = ci.isDatasetVisible(4);;
                                             ci.options.plugins.annotation.annotations[`lowerStdDevLine_${index}`].display = ci.isDatasetVisible(4);;
@@ -1537,19 +1546,19 @@
                                         for(let i=0;i<4;i++){
                                             if(!ci.data.datasets[i].hidden) {
                                                 di = i;
+                                                console.log("di: ",di);
+                                                if(index===4){
+                                                    ci.options.plugins.annotation.annotations[`meanLine_${di}`].display = !ci.isDatasetVisible(index);
+                                                    ci.options.plugins.annotation.annotations[`upperStdDevLine_${di}`].display = !ci.isDatasetVisible(index);
+                                                    ci.options.plugins.annotation.annotations[`lowerStdDevLine_${di}`].display = !ci.isDatasetVisible(index);
+                                                    
+                                                }
+                                                if(index===5){
+                                                    ci.options.plugins.annotation.annotations[`medianLine_${di}`].display = !ci.isDatasetVisible(index);
+                                                    ci.options.plugins.annotation.annotations[`upperIQRLine_${di}`].display = !ci.isDatasetVisible(index);
+                                                    ci.options.plugins.annotation.annotations[`lowerIQRLine_${di}`].display = !ci.isDatasetVisible(index);
+                                                }
                                             }
-                                        }
-                                        console.log("di: ",di);
-                                        if(index===4){
-                                            ci.options.plugins.annotation.annotations[`meanLine_${di}`].display = !ci.isDatasetVisible(index);
-                                            ci.options.plugins.annotation.annotations[`upperStdDevLine_${di}`].display = !ci.isDatasetVisible(index);
-                                            ci.options.plugins.annotation.annotations[`lowerStdDevLine_${di}`].display = !ci.isDatasetVisible(index);
-                                            
-                                        }
-                                        if(index===5){
-                                            ci.options.plugins.annotation.annotations[`medianLine_${di}`].display = !ci.isDatasetVisible(index);
-                                            ci.options.plugins.annotation.annotations[`upperIQRLine_${di}`].display = !ci.isDatasetVisible(index);
-                                            ci.options.plugins.annotation.annotations[`lowerIQRLine_${di}`].display = !ci.isDatasetVisible(index);
                                         }
                                         
                                         if(ci.isDatasetVisible(index)){ 
