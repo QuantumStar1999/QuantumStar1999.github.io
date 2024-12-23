@@ -552,10 +552,10 @@
             startTime = new Date(localStorage.getItem('startTime'));
             const elapsedTimeNow =  parseInt(localStorage.getItem('elapsedTime')) + flag*((currentTime - startTime));
             
-            console.log("Elapsed Time Now: ", elapsedTimeNow,"\n", 
-                        "elapsedTime:", elapsedTime,"\n", 
-                        "localStorage(elapsedTime):", parseInt(localStorage.getItem('elapsedTime')),"\n",
-                        "start Time:",startTime);
+            // console.log("Elapsed Time Now: ", elapsedTimeNow,"\n", 
+            //             "elapsedTime:", elapsedTime,"\n", 
+            //             "localStorage(elapsedTime):", parseInt(localStorage.getItem('elapsedTime')),"\n",
+            //             "start Time:",startTime);
 
             const hours = Math.floor(elapsedTimeNow / (1000 * 60 * 60)) || 0;
             const minutes = Math.floor((elapsedTimeNow % (1000 * 60 * 60)) / (1000 * 60)) || 0;
@@ -574,7 +574,9 @@
             const savedStartIndex = localStorage.getItem('startIndex');
             const savedCorrect = localStorage.getItem('correctMarks');
             const savedIncorrect = localStorage.getItem('incorrectMarks');
-            
+            const incorrectSaved = localStorage.getItem('incorrectResponses');
+            const notAttemptedSaved = localStorage.getItem('notAttemptedResponses');
+            const evalType = document.getElementById('evalType') || 'Type-1';
             if (savedNumQuestions) {
                 document.getElementById('numQuestions').value = savedNumQuestions;
             }
@@ -590,6 +592,10 @@
             }
             if (savedIncorrect) {
                 document.getElementById('incorrectMarks').value = savedIncorrect;
+
+            }
+            // Add Saved Portion If required
+            if(evalType==='Type-1'){
 
             }
             
@@ -764,8 +770,6 @@
             const startIndex = parseInt(document.getElementById('startIndex').value) || 1;
             const numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
             let resultHTML = '<center><h2>Your Responses</h2></center><table class="response-table left-align" border="1" style="border-collapse: collapse;"><tr>';
-
-
             questions.forEach((question, index) => {
                 const questionNumber = index + startIndex;
                 const questionText = "0".repeat((numQuestions + startIndex - 1).toString().length - (questionNumber).toString().length);
@@ -782,7 +786,6 @@
 
             resultHTML += '</tr></table>';
             document.getElementById('your-response').innerHTML = resultHTML;
-
             // Hide the questions and options after submitting
             document.getElementById('formContainer-wrapper').style.display = 'none';
 
@@ -790,52 +793,100 @@
             const resultContainer = document.getElementById('assessment');
             const resultHeader = '<h2> Assessment</h2>'+'<p>'.repeat(4);
             resultContainer.innerHTML = resultHeader;
-            
-            for (let i = 1; i <= numQuestions; i++) {
-                const resultItem = document.createElement('div');
-                resultItem.className = 'result-item';
-                const questionText = "0".repeat((numQuestions + startIndex - 1).toString().length - (i+startIndex-1).toString().length);
-                const label = document.createElement('label');
-                label.textContent = `${questionText}${i+startIndex-1}.`;
-                resultItem.appendChild(label);
-                const correctRadio = document.createElement('input');
-                correctRadio.type = 'radio';
-                correctRadio.name = `question-${i + startIndex-1}`;
-                correctRadio.className = 'correct';
-                correctRadio.title = 'Correct';
-                correctRadio.addEventListener('click', function() { 
-                    if(localStorage.getItem(`response-${i + startIndex - 1}`)==='correct'){
-                        localStorage.removeItem(`response-${i + startIndex - 1}`);
-                        correctRadio.checked = false;
-                    } else
-                        localStorage.setItem(`response-${i+startIndex-1}`, 'correct');
+
+
+            function getType1Form() {
+                const row = numQuestions/4+2;
+                const col = 30;
+                resultContainer.innerHTML+= `
+                    
+                    <div>
+                        <label for="incorrectResponses">Incorrect Responses:</label>
+                        <textarea id="incorrectResponses" name="incorrectResponses" rows="${row}" cols="${col}" placeholder="Enter incorrect responses here..."></textarea>
+                    </div>
+                    <div>
+                        <label for="notAttemptedResponses">Not Attempted Responses:</label>
+                        <textarea id="notAttemptedResponses" name="notAttemptedResponses" rows="${row}" cols="${col}" placeholder="Enter not attempted responses here..."></textarea>
+                    </div>
+                `;
+               
+                // Need to write code for local storage
+                // Add event listeners to save the content to localStorage 
+                document.getElementById('incorrectResponses').addEventListener('input', function() { 
+                    localStorage.setItem('incorrectResponses', this.value); 
+                }); 
+                document.getElementById('notAttemptedResponses').addEventListener('input', function() { 
+                    localStorage.setItem('notAttemptedResponses', this.value);
                 });
-                resultItem.appendChild(correctRadio);
 
-                const incorrectRadio = document.createElement('input');
-                incorrectRadio.type = 'radio';
-                incorrectRadio.name = `question-${i + startIndex-1}`;
-                incorrectRadio.className = 'incorrect';
-                incorrectRadio.title = 'Incorrect';
-                incorrectRadio.addEventListener('click', function() {  
-                    if(localStorage.getItem(`response-${i + startIndex - 1}`)==='incorrect'){
-                        localStorage.removeItem(`response-${i + startIndex - 1}`);
-                        incorrectRadio.checked = false;
-                    } else
-                        localStorage.setItem(`response-${i+startIndex-1}`, 'incorrect');
-
-                });
-                resultItem.appendChild(incorrectRadio);
-
-                // Load the saved state 
-                const savedResponse = localStorage.getItem(`response-${i + startIndex - 1}`); 
-                if (savedResponse === 'correct') { 
-                    correctRadio.checked = true; 
-                } else if (savedResponse === 'incorrect') { 
-                    incorrectRadio.checked = true; 
+                const incorrectSaved = localStorage.getItem('incorrectResponses');
+                const notAttemptedSaved = localStorage.getItem('notAttemptedResponses');
+                if(incorrectSaved){
+                    document.getElementById('incorrectResponses').value = incorrectSaved;
                 }
-                resultContainer.appendChild(resultItem);
+                if(notAttemptedSaved){
+                    document.getElementById('notAttemptedResponses').value = notAttemptedSaved;
+                }
             }
+
+            function getType2Form(){
+                for (let i = 1; i <= numQuestions; i++) {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    const questionText = "0".repeat((numQuestions + startIndex - 1).toString().length - (i+startIndex-1).toString().length);
+                    const label = document.createElement('label');
+                    label.textContent = `${questionText}${i+startIndex-1}.`;
+                    resultItem.appendChild(label);
+                    const correctRadio = document.createElement('input');
+                    correctRadio.type = 'radio';
+                    correctRadio.name = `question-${i + startIndex-1}`;
+                    correctRadio.className = 'correct';
+                    correctRadio.title = 'Correct';
+                    correctRadio.addEventListener('click', function() { 
+                        if(localStorage.getItem(`response-${i + startIndex - 1}`)==='correct'){
+                            localStorage.removeItem(`response-${i + startIndex - 1}`);
+                            correctRadio.checked = false;
+                        } else
+                            localStorage.setItem(`response-${i+startIndex-1}`, 'correct');
+                    });
+                    resultItem.appendChild(correctRadio);
+
+                    const incorrectRadio = document.createElement('input');
+                    incorrectRadio.type = 'radio';
+                    incorrectRadio.name = `question-${i + startIndex-1}`;
+                    incorrectRadio.className = 'incorrect';
+                    incorrectRadio.title = 'Incorrect';
+                    incorrectRadio.addEventListener('click', function() {  
+                        if(localStorage.getItem(`response-${i + startIndex - 1}`)==='incorrect'){
+                            localStorage.removeItem(`response-${i + startIndex - 1}`);
+                            incorrectRadio.checked = false;
+                        } else
+                            localStorage.setItem(`response-${i+startIndex-1}`, 'incorrect');
+
+                    });
+                    resultItem.appendChild(incorrectRadio);
+
+                    // Load the saved state 
+                    const savedResponse = localStorage.getItem(`response-${i + startIndex - 1}`); 
+                    if (savedResponse === 'correct') { 
+                        correctRadio.checked = true; 
+                    } else if (savedResponse === 'incorrect') { 
+                        incorrectRadio.checked = true; 
+                    }
+                    resultContainer.appendChild(resultItem);
+                }
+            }
+            const evalType =  document.getElementById('evalType').value || "Type-1";
+            if(evalType==='Type-1'){
+                getType1Form();
+            }
+            else{
+                getType2Form();
+            }
+
+            
+            
+            
             // Show the summary button after submission
             document.getElementById('summary').style.display = 'none';
             document.getElementById('summaryButton').style.display='block';
@@ -850,16 +901,48 @@
             
             
         }
+        function splitAndCastToInt(text) {
+            // Split the text by comma and spaces using regex and filter out empty strings
+            // text += ",";
+            let arr = text.split(/[, ]+/).filter(Boolean);
+
+            // Cast each element to an integer and store in a new array
+            console.log(text);
+            console.log(arr.map(Number));
+            return arr.map(Number);
+
+        }
+
+
         function showSummary() {
             const correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
             const incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
+            const totalQuestions = parseInt(localStorage.getItem('numQuestions')) ;
+            const evalType =  document.getElementById('evalType').value || "Type-1";
 
-            const correctRadios = document.querySelectorAll('.correct:checked');
-            const incorrectRadios = document.querySelectorAll('.incorrect:checked');
-            const totalQuestions = document.querySelectorAll('.result-item').length;
-            const correct_answers = correctRadios.length;
-            const wrong_answers = incorrectRadios.length;
-            const notAttempted = totalQuestions - (correct_answers+wrong_answers);
+            let correct_answers,wrong_answers,notAttempted;
+            if(evalType==='Type-1'){
+                const incorrectResponses = document.getElementById('incorrectResponses').value ||"";
+                const notAttemptedResponses = document.getElementById('notAttemptedResponses').value || "";
+
+                wrong_answers = splitAndCastToInt(incorrectResponses).length;
+                notAttempted = splitAndCastToInt(notAttemptedResponses).length;
+                correct_answers = totalQuestions - (notAttempted+wrong_answers);
+
+            }
+            else{
+
+                const correctRadios = document.querySelectorAll('.correct:checked');
+                const incorrectRadios = document.querySelectorAll('.incorrect:checked');
+    
+                correct_answers = correctRadios.length;
+                wrong_answers = incorrectRadios.length;
+                notAttempted = totalQuestions - (correct_answers+wrong_answers);
+
+            }
+
+            console.log(`No of Correct: ${correct_answers}\nNo of Incorrrect: ${wrong_answers}\nNo of Not Attempted: ${notAttempted}`);
+
             const marks = correctMarks*correct_answers-incorrectMarks*wrong_answers;
             const total_marks = correctMarks*totalQuestions;
             const marks_percent = ((marks/total_marks*100)).toFixed(2);
@@ -1044,8 +1127,8 @@
             let timeSpent = JSON.parse(localStorage.getItem('timeSpent')) || {};
             const startIndex = parseInt(document.getElementById('startIndex').value) || 1;
             const numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
+            const evalType =  document.getElementById('evalType').value || "Type-1";
 
-            // Chart.register(Chart.Annotation);
             const timeSpents = {};
             for(let i = 1; i <= numQuestions; i++){
                 const questionNumber = i + startIndex - 1;
@@ -1054,18 +1137,38 @@
 
            
             const responses = {};
-            for (let i = 1; i <= numQuestions; i++) {
-                const questionNumber = i + startIndex - 1;
-                const correctRadio = document.querySelector(`input[name="question-${questionNumber}"].correct`);
-                const incorrectRadio = document.querySelector(`input[name="question-${questionNumber}"].incorrect`);
-
-                if (correctRadio.checked) {
+            if(evalType==='Type-1'){
+                for (let i = 1; i <= numQuestions; i++) {
+                    const questionNumber = i + startIndex - 1;
                     responses[questionNumber] = 'correct';
-                } else if (incorrectRadio.checked) {
-                    responses[questionNumber] = 'incorrect';
-                } else {
-                    responses[questionNumber] = 'not_attempted';
                 }
+                const incorrectResponses = document.getElementById('incorrectResponses').value ||"";
+                const notAttemptedResponses = document.getElementById('notAttemptedResponses').value || "";
+                const getIncorrect = splitAndCastToInt(incorrectResponses);
+                const getNotAttempted = splitAndCastToInt(notAttemptedResponses);
+                getIncorrect.forEach(num => {
+                    responses[num] = 'incorrect';
+                })
+                getNotAttempted.forEach(num => {
+                    responses[num] = 'not_attempted';
+                })
+            }
+            else {
+
+                for (let i = 1; i <= numQuestions; i++) {
+                    const questionNumber = i + startIndex - 1;
+                    const correctRadio = document.querySelector(`input[name="question-${questionNumber}"].correct`);
+                    const incorrectRadio = document.querySelector(`input[name="question-${questionNumber}"].incorrect`);
+    
+                    if (correctRadio.checked) {
+                        responses[questionNumber] = 'correct';
+                    } else if (incorrectRadio.checked) {
+                        responses[questionNumber] = 'incorrect';
+                    } else {
+                        responses[questionNumber] = 'not_attempted';
+                    }
+                }
+
             }
 
             const allTimes = Object.values(timeSpents);
