@@ -1544,7 +1544,7 @@
                                     else{
                                         let di;
                                         for(let i=0;i<4;i++){
-                                            if(!ci.data.datasets[i].hidden) {
+                                            if(ci.data.datasets[i].hidden===false) {
                                                 di = i;
                                                 console.log("di: ",di,"State: ", ci.data.datasets[i].hidden);
                                                 if(index===4){
