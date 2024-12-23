@@ -1546,7 +1546,7 @@
                                         for(let i=0;i<4;i++){
                                             if(!ci.data.datasets[i].hidden) {
                                                 di = i;
-                                                console.log("di: ",di);
+                                                console.log("di: ",di,"State: ", ci.data.datasets[i].hidden);
                                                 if(index===4){
                                                     ci.options.plugins.annotation.annotations[`meanLine_${di}`].display = !ci.isDatasetVisible(index);
                                                     ci.options.plugins.annotation.annotations[`upperStdDevLine_${di}`].display = !ci.isDatasetVisible(index);
