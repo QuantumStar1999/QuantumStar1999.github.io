@@ -59,10 +59,30 @@
             margin-right: 10px;
         }
 
-        .input-form input {
+        .input-form input, .custom-select {
             flex: 1;
             width: 40%;
+            /* height: auto; */
         }
+        .custom-select {
+            width: 100%;   /* Make the width consistent with the upper div */
+            padding: 5px; /* Add some padding for a better look */
+            font-size:15px; /* Adjust the font size */
+            border-radius: 4px; /* Add rounded corners */
+            border: 1px solid #ccc; /* Add a border */
+            box-shadow: inset 0 1px 1px rgba(0,0,0,0.075); /* Add some inner shadow */
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0.075); /* For Safari */
+            background-color: #fff; /* Ensure background color is white */
+            appearance: none; /* Remove default styling */
+        }
+
+        .custom-select:focus {
+            border-color: #007bff; /* Change border color on focus */
+            outline: none; /* Remove outline */
+            box-shadow: 0 0 5px rgba(0,123,255,0.5); /* Add box shadow on focus */
+        }
+
+
 
         .timer-container {
             text-align: center;
@@ -338,6 +358,15 @@
                 <label for="incorrectMarks">Marks for Incorrect:</label>
                 <input type="number" id="incorrectMarks" name="incorrectMarks" value="1">
             </div>
+            <div class="form-group">
+                <label for="evalType">Evaluation Type:</label>
+                <select id="evalType" name="evalType", class="custom-select">
+                    <option value="Type-1" selected>Type-1</option>
+                    <option value="Type-2">Type-2</option>
+                </select>
+            </div>
+            
+
             <div class="button-group">
                 <button type="button" onclick="generateForm()">Generate Form</button>
                 <button type="button" onclick="clearAll()">Clear All</button>
@@ -1725,10 +1754,34 @@
 
             const percentiles = [90, 95, 99];
 
-           
-            function getPercentileLines(data, color,name) {
-                // const colors = ['red', 'orange', 'blue'];
+            function getPercentileLines(data) {
+                const colors = ['red', 'orange', 'blue'];
                 
+                return percentiles.map((percentile, index) => {
+                    const point = data.find(point => point.y >= percentile);
+                    if (point) {
+                        const xValue = point.x;
+                        return {
+                            // id: `${percentile}`,
+                            type: 'line',
+                            xMin: xValue,
+                            xMax: xValue,
+                            borderColor: colors[index],
+                            borderWidth: 2,
+                            display: true,
+                            label: {
+                                content: `${percentile}%`,
+                                enabled: true,
+                                position: 'end',
+                                display: true,
+                            }
+                        };
+                    } else {
+                        return null;
+                    }
+                }).filter(line => line !== null);
+            }
+            function getPercentileLines_updated(data, color,name) {
                 return percentiles.map((percentile, index) => {
                     const point = data.find(point => point.y >= percentile);
                     if (point) {
@@ -1759,30 +1812,6 @@
             const ctxAll = document.getElementById('allChart').getContext('2d');
             if(allChart){allChart.destroy();}
 
-            // function getPercentileLines(data, color) {
-            //     return percentiles.map(percentile => {
-            //         const point = data.find(point => point.y >= percentile);
-            //         if (point) {
-            //             const xValue = point.x;
-            //             return {
-            //                 type: 'line',
-            //                 xMin: xValue,
-            //                 xMax: xValue,
-            //                 borderColor: color,
-            //                 borderWidth: 2,
-            //                 label: {
-            //                     content: `${percentile}%`,
-            //                     enabled: true,
-            //                     position: 'end',
-            //                     display: true,
-            //                 }
-            //             };
-            //         } else {
-            //             return null;
-            //         }
-            //     }).filter(line => line !== null);
-            // }
-
             const datasetsForCum = [
                 {
                     label: 'All Questions',
@@ -1790,33 +1819,32 @@
                     borderColor: 'blue',
                     fill: false,
                     tension: .4,
-                    annotations: getPercentileLines(allCumulative, 'blue','all'),
+                    annotations: getPercentileLines_updated(allCumulative, 'blue','all'),
                 },
                 {
                     label: 'Correct Questions',
                     data: correctCumulative,
                     borderColor: 'green',
                     fill: false,
-                    annotations: getPercentileLines(correctCumulative, 'green','correct'),
+                    annotations: getPercentileLines_updated(correctCumulative, 'green','correct'),
                 },
                 {
                     label: 'Incorrect Questions',
                     data: incorrectCumulative,
                     borderColor: 'red',
                     fill: false,
-                    annotations: getPercentileLines(incorrectCumulative, 'red','incorrect'),
+                    annotations: getPercentileLines_updated(incorrectCumulative, 'red','incorrect'),
                 },
                 {
                     label: 'Not Attempted Questions',
                     data: notAttemptedCumulative,
                     borderColor: 'gray',
                     fill: false,
-                    annotations: getPercentileLines(notAttemptedCumulative, 'gray','unattempted'),
+                    annotations: getPercentileLines_updated(notAttemptedCumulative, 'gray','unattempted'),
                 }
             ];
 
-            // allChart = document.getElementById('allChart').getContext('2d');
-            // if (combinedChart) { combinedChart.destroy(); }
+           
             allChart = new Chart(ctxAll, {
                 type: 'line',
                 data: {
@@ -1958,6 +1986,7 @@
                     }
                 }
             });
+            */
             if(correctChart){correctChart.destroy();}
             const ctxCorrect = document.getElementById('correctChart').getContext('2d');
             correctChart =  new Chart(ctxCorrect, {
@@ -2081,7 +2110,7 @@
                     }
                 }
             });
-            */
+            
 
 
             
