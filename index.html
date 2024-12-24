@@ -82,6 +82,31 @@
             box-shadow: 0 0 5px rgba(0,123,255,0.5); /* Add box shadow on focus */
         }
 
+        #timeAnalysis {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 15px; /* Adjust the space between elements as needed */
+            flex-wrap: wrap; /* Allow wrapping if the screen is too narrow */
+        }
+
+        .new-form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-right: 10px; /* Add some space between groups */
+        }
+
+        .new-form-group label {
+            margin-bottom: 5px;
+        }
+
+        .horizontal-buttons {
+            display: flex;
+            gap: 10px; /* Space between buttons */
+        }
+
 
 
         .timer-container {
@@ -419,6 +444,51 @@
 
     <script>
         // html handling section
+        const analysisHTML =`
+        <div id="timeAnalysis">
+            <div class="new-form-group">
+                <label for="statType">Statistical Measure:</label>
+                <select id="statType" class="custom-select">
+                    <option value="mean">Mean</option>
+                    <option value="median">Median</option>
+                    <option value="stdDev">Standard Deviation</option>
+                    <option value="range">Range</option>
+                    <option value="Q1">First Quartile (Q1)</option>
+                    <option value="Q3">Third Quartile (Q3)</option>
+                    <option value="IQR">Interquartile Range (IQR)</option>
+                    <option value="kurtosis">Kurtosis</option>
+                    <option value="skewness">Skewness</option>
+                    <option value="b1">Skewness(b1)</option>
+                    <option value="g1">Skewness(g1)</option>
+                    <option value="scorePercentage">Score Percentage</option>
+                </select>
+            </div>
+            <div class="new-form-group">
+                <label for="subjectSelect">Subject:</label>
+                <select id="subjectSelect" class="custom-select">
+                    <option value="Math">Mathematics</option>
+                    <option value="Reasoning">Reasoning</option>
+                    <option value="English">English</option>
+                    <option value="GK">GK</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="new-form-group">
+                <label for="responseType">Response Type:</label>
+                <select id="responseType" class="custom-select">
+                    <option value="all">All</option>
+                    <option value="correct">Correct</option>
+                    <option value="incorrect">Incorrect</option>
+                    <option value="not_attempted">Not Attempted</option>
+                </select>
+            </div>
+        
+            <button class= "horizontal-buttons", onclick="plotPerformanceGraph()">Plot Graph</button>
+            <div id="performanceChartContainer" class="chart-container"> 
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+        `;
         const plotterHTML =`
         <div id="chart" class="chart-container">
             <canvas id="timeChart"></canvas>
@@ -438,95 +508,9 @@
         <div id="notAttemptedChartContainer" class="chart-container"> 
             <canvas id="notAttemptedChart"></canvas> 
         </div>
-        <div id="timeAnalysis">
-            <div class="form-group">
-                <label for="statType">Statistical Measure:</label>
-                <select id="statType" class="custom-select">
-                    <option value="mean">Mean</option>
-                    <option value="median">Median</option>
-                    <option value="stdDev">Standard Deviation</option>
-                    <option value="range">Range</option>
-                    <option value="Q1">First Quartile (Q1)</option>
-                    <option value="Q3">Third Quartile (Q3)</option>
-                    <option value="IQR">Interquartile Range (IQR)</option>
-                    <option value="skewness">Skewness</option>
-                    <option value="kurtosis">Kurtosis</option>
-                    <option value="variance">Variance</option>
-                    <option value="min">Minimum</option>
-                    <option value="max">Maximum</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="subjectSelect">Subject:</label>
-                <select id="subjectSelect" class="custom-select">
-                    <option value="Math">Mathematics</option>
-                    <option value="Reasoning">Reasoning</option>
-                    <option value="English">English</option>
-                    <option value="GK">GK</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="responseType">Response Type:</label>
-                <select id="responseType" class="custom-select">
-                    <option value="all">All</option>
-                    <option value="correct">Correct</option>
-                    <option value="incorrect">Incorrect</option>
-                    <option value="not_attempted">Not Attempted</option>
-                </select>
-            </div>
-        
-            <button onclick="plotPerformanceGraph()">Plot Graph</button>
-            <div id="performanceChartContainer" class="chart-container"> 
-                <canvas id="performanceChart"></canvas>
-            </div>
-        </div>
+        ${analysisHTML}
         `;
-        const analysisHTML =`
-        <div id="timeAnalysis">
-            <div class="form-group">
-                <label for="statType">Statistical Measure:</label>
-                <select id="statType" class="custom-select">
-                    <option value="mean">Mean</option>
-                    <option value="median">Median</option>
-                    <option value="stdDev">Standard Deviation</option>
-                    <option value="range">Range</option>
-                    <option value="Q1">First Quartile (Q1)</option>
-                    <option value="Q3">Third Quartile (Q3)</option>
-                    <option value="IQR">Interquartile Range (IQR)</option>
-                    <option value="skewness">Skewness</option>
-                    <option value="kurtosis">Kurtosis</option>
-                    <option value="variance">Variance</option>
-                    <option value="min">Minimum</option>
-                    <option value="max">Maximum</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="subjectSelect">Subject:</label>
-                <select id="subjectSelect" class="custom-select">
-                    <option value="Math">Mathematics</option>
-                    <option value="Reasoning">Reasoning</option>
-                    <option value="English">English</option>
-                    <option value="GK">GK</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="responseType">Response Type:</label>
-                <select id="responseType" class="custom-select">
-                    <option value="all">All</option>
-                    <option value="correct">Correct</option>
-                    <option value="incorrect">Incorrect</option>
-                    <option value="not_attempted">Not Attempted</option>
-                </select>
-            </div>
         
-            <button onclick="plotPerformanceGraph()">Plot Graph</button>
-            <div id="performanceChartContainer" class="chart-container"> 
-                <canvas id="performanceChart"></canvas>
-            </div>
-        </div>
-        `;
         // General purpose
         let startTime;
         let timerInterval;
@@ -1045,8 +1029,7 @@
 
         }
 
-
-        function showSummary() {
+        function getEvaluation(){
             const correctMarks = parseInt(document.getElementById('correctMarks').value) || 2;
             const incorrectMarks = parseInt(document.getElementById('incorrectMarks').value) || 1;
             const totalQuestions = parseInt(localStorage.getItem('numQuestions')) ;
@@ -1072,12 +1055,26 @@
                 notAttempted = totalQuestions - (correct_answers+wrong_answers);
 
             }
-
-            console.log(`No of Correct: ${correct_answers}\nNo of Incorrrect: ${wrong_answers}\nNo of Not Attempted: ${notAttempted}`);
-
-            const marks = correctMarks*correct_answers-incorrectMarks*wrong_answers;
+            const total_correctMarks = correctMarks*correct_answers;
+            const total_incorrectMarks = incorrectMarks*wrong_answers;
+            const marks = total_correctMarks-total_incorrectMarks;
             const total_marks = correctMarks*totalQuestions;
+
+            const correct_percent = ((correct_answers/totalQuestions*100)).toFixed(2);
+            const incorrect_percent = ((wrong_answers/totalQuestions*100)).toFixed(2);
+            const notAttempted_percent = ((notAttempted/totalQuestions*100)).toFixed(2);
             const marks_percent = ((marks/total_marks*100)).toFixed(2);
+            return {correct_answers, wrong_answers, notAttempted, 
+                marks, total_correctMarks, total_incorrectMarks, total_marks,
+                correct_percent, incorrect_percent, notAttempted_percent, marks_percent
+             };
+        }
+        function showSummary() {
+            
+            const evaluation = getEvaluation();
+
+            console.log(`No of Correct: ${evaluation.correct_answers}\nNo of Incorrrect: ${evaluation.wrong_answers}\nNo of Not Attempted: ${evaluation.notAttempted}`);
+            
             const summaryHTML = `<h2>Summary</h2><table class="summary-table">
             <tr>
                 <th>Category</th>
@@ -1085,19 +1082,19 @@
             </tr>
             <tr>
                 <td>Correct</td>
-                <td>${correct_answers}</td>
+                <td>${evaluation.correct_answers} (${evaluation.correct_percent}%)</td>
             </tr>
             <tr>
                 <td>Incorrect</td>
-                <td>${wrong_answers}</td>
+                <td>${evaluation.wrong_answers} (${evaluation.incorrect_percent}%)</td>
             </tr>
             <tr>
                 <td>Not Attempted</td>
-                <td>${notAttempted}</td>
+                <td>${evaluation.notAttempted} (${evaluation.notAttempted_percent}%)</td>
             </tr>
             <tr>
                 <td>Marks</td>
-                <td>${marks} (${marks_percent}%)</td>
+                <td>${evaluation.marks} (${evaluation.marks_percent}%)</td>
             </tr>
         </table>
             `;
@@ -1342,11 +1339,16 @@
             const correctStats = calculateStatistics(correctTimes);
             const incorrectStats = calculateStatistics(incorrectTimes);
             const notAttemptedStats = calculateStatistics(notAttemptedTimes);
+
+            const evaluation = getEvaluation();
+            allStats.scorePercentage = evaluation.marks_percent;
+            correctStats.scorePercentage = evaluation.correct_percent;
+            incorrectStats.scorePercentage = evaluation.incorrect_percent;
+            notAttemptedStats.scorePercentage = evaluation.notAttempted;
             // const today = new Date();
             // const dayAfterTomorrow = new Date(today);
             // dayAfterTomorrow.setDate(today.getDate() + 2);
             // console.log(dayAfterTomorrow,today);
-
             const dateTime = new Date().toISOString();
             const subject = document.getElementById('subjectType').value; 
             storeStatistics(allStats, 'all', dateTime); 
