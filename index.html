@@ -383,10 +383,11 @@
             
 
             <div class="button-group">
-                <button type="button" onclick="generateForm()">Generate Form</button>
+                <button type="button" onclick="generateForm()">Get Form</button>
                 <button type="button" onclick="submitForm()">Submit</button>
+                <button type="button" onclick="performance()">Analyse</button>
                 <button type="button" onclick="clearAll()">Reset</button>
-                <button type="button" onclick="clearCache()">Clear Cache</button>
+                <button type="button" onclick="clearCache()">Clear</button>
             </div>
         </form>
 
@@ -481,7 +482,51 @@
             </div>
         </div>
         `;
-
+        const analysisHTML =`
+        <div id="timeAnalysis">
+            <div class="form-group">
+                <label for="statType">Statistical Measure:</label>
+                <select id="statType" class="custom-select">
+                    <option value="mean">Mean</option>
+                    <option value="median">Median</option>
+                    <option value="stdDev">Standard Deviation</option>
+                    <option value="range">Range</option>
+                    <option value="Q1">First Quartile (Q1)</option>
+                    <option value="Q3">Third Quartile (Q3)</option>
+                    <option value="IQR">Interquartile Range (IQR)</option>
+                    <option value="skewness">Skewness</option>
+                    <option value="kurtosis">Kurtosis</option>
+                    <option value="variance">Variance</option>
+                    <option value="min">Minimum</option>
+                    <option value="max">Maximum</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="subjectSelect">Subject:</label>
+                <select id="subjectSelect" class="custom-select">
+                    <option value="Math">Mathematics</option>
+                    <option value="Reasoning">Reasoning</option>
+                    <option value="English">English</option>
+                    <option value="GK">GK</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="responseType">Response Type:</label>
+                <select id="responseType" class="custom-select">
+                    <option value="all">All</option>
+                    <option value="correct">Correct</option>
+                    <option value="incorrect">Incorrect</option>
+                    <option value="not_attempted">Not Attempted</option>
+                </select>
+            </div>
+        
+            <button onclick="plotPerformanceGraph()">Plot Graph</button>
+            <div id="performanceChartContainer" class="chart-container"> 
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+        `;
         // General purpose
         let startTime;
         let timerInterval;
@@ -692,7 +737,9 @@
             event.returnValue = '';
         });
 
-
+        function performance(){
+            document.getElementById('plotter').innerHTML=analysisHTML;
+        }
 
         function generateForm() {
             numQuestions = parseInt(document.getElementById('numQuestions').value) || 20;
