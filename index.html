@@ -329,8 +329,13 @@
     </style>
     <!-- Import Chart.js v4.x -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
-    <!-- Import chartjs-plugin-annotation for v4.x -->
+    <!-- Import chartjs-plugin-annotation for v3.x -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.23.0/dist/date-fns.min.js"></script>
+    <!-- Import chartjs-adapter-date-fns for v2.x -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+
 </head>
 
 <body>
@@ -365,12 +370,23 @@
                     <option value="Type-2">Type-2</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label for="subjectType">Subject:</label>
+                <select id="subjectType" name="subjectType", class="custom-select">
+                    <option value="Math" >Mathematics</option>
+                    <option value="Reasoning">Reasoning</option>
+                    <option value="English">English</option>
+                    <option value="GK">GK</option>
+                    <option value="Other" selected>Other</option>
+                </select>
+            </div>
             
 
             <div class="button-group">
                 <button type="button" onclick="generateForm()">Generate Form</button>
-                <button type="button" onclick="clearAll()">Clear All</button>
                 <button type="button" onclick="submitForm()">Submit</button>
+                <button type="button" onclick="clearAll()">Reset</button>
+                <button type="button" onclick="clearCache()">Clear Cache</button>
             </div>
         </form>
 
@@ -396,25 +412,77 @@
         <div id="assessment" class="assessment-container"></div>
     </div>
     <div id="time-summary" class="time-summary-container" style="display: none;"></div>
-    <div id="chart" class="chart-container">
-        <canvas id="timeChart"></canvas>
-    </div>
-    <div id="histogram" class="chart-container">
-        <canvas id="histogramChart"></canvas>
-    </div>
-    <div id="allChartContainer" class="chart-container"> 
-        <canvas id="allChart"></canvas> 
-    </div> 
-    <div id="correctChartContainer" class="chart-container"> 
-        <canvas id="correctChart"></canvas> 
-    </div> 
-    <div id="incorrectChartContainer" class="chart-container"> 
-        <canvas id="incorrectChart"></canvas> 
-    </div> 
-    <div id="notAttemptedChartContainer" class="chart-container"> 
-        <canvas id="notAttemptedChart"></canvas> 
-    </div>
+    
+    
+    <div id="plotter" class="chart-container"></div>
+
     <script>
+        // html handling section
+        const plotterHTML =`
+        <div id="chart" class="chart-container">
+            <canvas id="timeChart"></canvas>
+        </div>
+        <div id="histogram" class="chart-container">
+            <canvas id="histogramChart"></canvas>
+        </div>
+        <div id="allChartContainer" class="chart-container"> 
+            <canvas id="allChart"></canvas> 
+        </div> 
+        <div id="correctChartContainer" class="chart-container"> 
+            <canvas id="correctChart"></canvas> 
+        </div> 
+        <div id="incorrectChartContainer" class="chart-container"> 
+            <canvas id="incorrectChart"></canvas> 
+        </div> 
+        <div id="notAttemptedChartContainer" class="chart-container"> 
+            <canvas id="notAttemptedChart"></canvas> 
+        </div>
+        <div id="timeAnalysis">
+            <div class="form-group">
+                <label for="statType">Statistical Measure:</label>
+                <select id="statType" class="custom-select">
+                    <option value="mean">Mean</option>
+                    <option value="median">Median</option>
+                    <option value="stdDev">Standard Deviation</option>
+                    <option value="range">Range</option>
+                    <option value="Q1">First Quartile (Q1)</option>
+                    <option value="Q3">Third Quartile (Q3)</option>
+                    <option value="IQR">Interquartile Range (IQR)</option>
+                    <option value="skewness">Skewness</option>
+                    <option value="kurtosis">Kurtosis</option>
+                    <option value="variance">Variance</option>
+                    <option value="min">Minimum</option>
+                    <option value="max">Maximum</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="subjectSelect">Subject:</label>
+                <select id="subjectSelect" class="custom-select">
+                    <option value="Math">Mathematics</option>
+                    <option value="Reasoning">Reasoning</option>
+                    <option value="English">English</option>
+                    <option value="GK">GK</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="responseType">Response Type:</label>
+                <select id="responseType" class="custom-select">
+                    <option value="all">All</option>
+                    <option value="correct">Correct</option>
+                    <option value="incorrect">Incorrect</option>
+                    <option value="not_attempted">Not Attempted</option>
+                </select>
+            </div>
+        
+            <button onclick="plotPerformanceGraph()">Plot Graph</button>
+            <div id="performanceChartContainer" class="chart-container"> 
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+        `;
+
+        // General purpose
         let startTime;
         let timerInterval;
         let elapsedTime = parseInt(localStorage.getItem('elapsedTime'))||0;
@@ -424,11 +492,13 @@
 
         let timeSpent = JSON.parse(localStorage.getItem('timeSpent')) || {};
         let history = {};
-        let timeChart, histogramChart,allChart,correctChart,incorrectChart,notAttemptedChart;
+        // Chart Handling
+        let timeChart, histogramChart,allChart,correctChart,incorrectChart,notAttemptedChart,performanceChart;
 
         let lastTimestamp;
         let numQuestions, numColumns, startIndex, correctMarks, incorrectMarks;
 
+        // Local Storage Handling
         if(localStorage.getItem('numQuestions')){
             document.getElementById('numQuestions').value = localStorage.getItem('numQuestions');
             numQuestions = parseInt(localStorage.getItem('numQuestions'));
@@ -640,15 +710,16 @@
             // Hide the questions and options after submitting
             document.getElementById('result').style.display = 'none';
             document.getElementById('summary-button-container').style.display = 'none';
-            document.getElementById('chart').innerHTML =`<canvas id="timeChart"></canvas>`;
             document.getElementById('time-summary').style.display = 'none';
             document.getElementById('result').innerHTML = `<div id="result" class="result-container">
-        <div id="your-response" class="your-response-container"></div>
-        <div id="assessment" class="assessment-container"></div>
-        </div>
-            `;
-
-            document.getElementById('formContainer-wrapper').style.display = 'inline-block';
+                <div id="your-response" class="your-response-container"></div>
+                <div id="assessment" class="assessment-container"></div>
+                </div>
+                `;
+                
+                document.getElementById('formContainer-wrapper').style.display = 'inline-block';
+                document.getElementById('plotter').innerHTML = '';
+                // document.getElementById('chart').innerHTML =`<canvas id="timeChart"></canvas>`;
 
             const formContainer = document.getElementById('formContainer');
             formContainer.innerHTML = '';
@@ -741,19 +812,33 @@
                 }
             }
         }
-
-        function clearAll() {
+        function clearCache(){
             localStorage.clear();
+        }
+        function clearAll() {
+            // Retrieve and store the statistical data
+            const statisticsData = JSON.parse(localStorage.getItem('statisticsData'));
+
+            // Clear all local storage
+            localStorage.clear();
+
+            // Restore the statistical data
+            if (statisticsData) {
+                localStorage.setItem('statisticsData', JSON.stringify(statisticsData));
+            }
+
+            // Clear other data and reset UI elements
             clearInterval(timerInterval);
             history = {};
             document.getElementById('formContainer-wrapper').style.display = 'none';
             document.getElementById('result').style.display = 'none';
             document.getElementById('summary-button-container').style.display = 'none';
-            document.getElementById('chart').innerHTML =`<canvas id="timeChart"></canvas>`;
+            document.getElementById('chart').innerHTML = `<canvas id="timeChart"></canvas>`;
             document.getElementById('time-summary').style.display = 'none';
-            document.getElementById('timer').textContent =
-                `${pad(0)}:${pad(0)}:${pad(0)}`;
+            document.getElementById('timer').textContent = `${pad(0)}:${pad(0)}:${pad(0)}`;
+            document.getElementById("plotter").innerHTML = '';
         }
+
 
         // Handle form submission
         function submitForm() {
@@ -974,11 +1059,41 @@
             summaryContainer.innerHTML = summaryHTML;
             summaryContainer.style.display = 'block';
             document.getElementById('summaryButton').style.display='none';
+
+            document.getElementById('plotter').innerHTML = plotterHTML;
+
             const timeSummaryContainer = document.getElementById('time-summary');
             timeSummaryContainer.style.display = 'block';
             document.getElementById('chart').style.display = 'block';
+            document.getElementById('subjectSelect').value = document.getElementById('subjectType').value;
             createGraph();
         }
+        // Storing the value
+        function storeStatistics(stats, subType,dateTime) {
+            // const dateTime = new Date().toISOString();
+            const key = 'statisticsData';
+
+            // Retrieve existing data from localStorage
+            let storedData = JSON.parse(localStorage.getItem(key)) || {};
+            const subject = document.getElementById('subjectType').value;
+            // Initialize subject data if it doesn't exist
+            if (!storedData[subject]) {
+                storedData[subject] = {};
+            }
+
+            // Store stats in subject data
+            for (const [stat, value] of Object.entries(stats)) {
+                const second_key = `${subType}_${stat}`;
+                if (!storedData[subject][second_key]) {
+                    storedData[subject][second_key] = {};
+                }
+                storedData[subject][second_key][dateTime] = value;
+            }
+
+            // Save the updated data back to localStorage
+            localStorage.setItem(key, JSON.stringify(storedData));
+        }
+
         function calculateStatistics(times) {
             if (times.length === 0) {
                 const mean = 0;
@@ -1180,6 +1295,17 @@
             const correctStats = calculateStatistics(correctTimes);
             const incorrectStats = calculateStatistics(incorrectTimes);
             const notAttemptedStats = calculateStatistics(notAttemptedTimes);
+            // const today = new Date();
+            // const dayAfterTomorrow = new Date(today);
+            // dayAfterTomorrow.setDate(today.getDate() + 2);
+            // console.log(dayAfterTomorrow,today);
+
+            const dateTime = new Date().toISOString();
+            const subject = document.getElementById('subjectType').value; 
+            storeStatistics(allStats, 'all', dateTime); 
+            storeStatistics(correctStats, 'correct', dateTime); 
+            storeStatistics(incorrectStats, 'incorrect', dateTime); 
+            storeStatistics(notAttemptedStats, 'not_attempted', dateTime);
 
             // Display the statistics in a table
             displayStatisticsTable(allStats, correctStats, incorrectStats, notAttemptedStats);
@@ -2214,10 +2340,96 @@
                 }
             });
             
-
-
-            
         }
+        function getStoredData() {
+            const key = 'statisticsData';
+            const storedData = JSON.parse(localStorage.getItem(key)) || {};
+            return storedData;
+        }
+        
+        // import { parseISO, format } from 'date-fns';
+        function plotPerformanceGraph() {
+            const statType = document.getElementById('statType').value;
+            const subjectType = document.getElementById('subjectSelect').value;
+            const responseType = document.getElementById('responseType').value;
+            const data = getStoredData();
+
+            if (!data[subjectType]) {
+                alert(`No data available for subject: ${subjectType}`);
+                return;
+            }
+
+            const statKey = `${responseType}_${statType}`;
+            if (!data[subjectType][statKey]) {
+                alert(`No data available for ${responseType} with statistical measure: ${statType}`);
+                return;
+            }
+
+            const statData = data[subjectType][statKey];
+            const labels = Object.keys(statData).map(date => new Date(date));
+            console.log(labels);
+            // const labels = Object.keys(statData);
+            const values = Object.values(statData);
+
+            if(performanceChart){
+                performanceChart.destroy();
+            }
+            const ctxperformanceChart = document.getElementById('performanceChart').getContext('2d');
+            performanceChart = new Chart(ctxperformanceChart, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `${statType} over time for ${subjectType} (${responseType})`,
+                        data: values,
+                        borderColor: 'blue',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                minUnit: 'day',
+                                tooltipFormat: 'dd MMM yyyy HH:mm',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            },
+                            ticks: { 
+                                autoSkip: true,
+                                maxTicksLimit: 10,
+                                // callback: function(value, index, values) { 
+                                //     return dateFns.format(value, 'dd MMM yyyy HH:mm');
+                                // } 
+                            },
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: statType
+                            }
+                        }
+                    }
+                }, 
+                plugins: { 
+                    legend: { 
+                        display: true 
+                    }, 
+                    tooltip: { 
+                        mode: 'index', 
+                        intersect: false 
+                    } 
+                }
+            });
+
+        }
+
     </script>
 </body>
 </html>
