@@ -411,7 +411,7 @@
                 <button type="button" onclick="generateForm()">Get Form</button>
                 <button type="button" onclick="submitForm()">Submit</button>
                 <button type="button" onclick="performance()">Analyse</button>
-                <button type="button" onclick="clearAll()">Reset</button>
+                <button type="button" onclick="reset()">Reset</button>
                 <button type="button" onclick="clearCache()">Clear</button>
             </div>
         </form>
@@ -846,7 +846,7 @@
         function clearCache(){
             localStorage.clear();
         }
-        function clearAll() {
+        function reset() {
             // Retrieve and store the statistical data
             const statisticsData = JSON.parse(localStorage.getItem('statisticsData'));
 
@@ -864,7 +864,7 @@
             document.getElementById('formContainer-wrapper').style.display = 'none';
             document.getElementById('result').style.display = 'none';
             document.getElementById('summary-button-container').style.display = 'none';
-            document.getElementById('chart').innerHTML = `<canvas id="timeChart"></canvas>`;
+            // document.getElementById('chart').innerHTML = `<canvas id="timeChart"></canvas>`;
             document.getElementById('time-summary').style.display = 'none';
             document.getElementById('timer').textContent = `${pad(0)}:${pad(0)}:${pad(0)}`;
             document.getElementById("plotter").innerHTML = '';
