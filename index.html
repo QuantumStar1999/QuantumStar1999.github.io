@@ -659,8 +659,7 @@
             const hours = Math.floor(elapsedTimeNow / (1000 * 60 * 60)) || 0;
             const minutes = Math.floor((elapsedTimeNow % (1000 * 60 * 60)) / (1000 * 60)) || 0;
             const seconds = Math.floor((elapsedTimeNow % (1000 * 60)) / 1000) || 0;
-            document.getElementById('timer').textContent =
-                `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+            document.getElementById('timer').textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
         }
 
         function pad(number) {
