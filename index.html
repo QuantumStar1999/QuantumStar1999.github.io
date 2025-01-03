@@ -398,11 +398,11 @@
             <div class="form-group">
                 <label for="subjectType">Subject:</label>
                 <select id="subjectType" name="subjectType", class="custom-select">
-                    <option value="Math" >Mathematics</option>
+                    <option value="Math" selected>Mathematics</option>
                     <option value="Reasoning">Reasoning</option>
                     <option value="English">English</option>
                     <option value="GK">GK</option>
-                    <option value="Other" selected>Other</option>
+                    <option value="Other">Other</option>
                 </select>
             </div>
             
@@ -411,7 +411,7 @@
                 <button type="button" onclick="generateForm()">Get Form</button>
                 <button type="button" onclick="submitForm()">Submit</button>
                 <button type="button" onclick="performance()">Analyse</button>
-                <button type="button" onclick="reset()">Reset</button>
+                <button type="button" onclick="resetForm()">Reset</button>
                 <button type="button" onclick="clearCache()">Clear</button>
             </div>
         </form>
@@ -845,7 +845,7 @@
         function clearCache(){
             localStorage.clear();
         }
-        function reset() {
+        function resetForm() {
             // Retrieve and store the statistical data
             const statisticsData = JSON.parse(localStorage.getItem('statisticsData'));
 
@@ -868,6 +868,39 @@
             document.getElementById('timer').textContent = `${pad(0)}:${pad(0)}:${pad(0)}`;
             document.getElementById("plotter").innerHTML = '';
         }
+        // function resetForm() {
+        //     // Retrieve and store the statistical data
+        //     const statisticsData = JSON.parse(localStorage.getItem('statisticsData'));
+
+        //     // Clear all local storage except the statistical data
+        //     localStorage.clear();
+        //     if (statisticsData) {
+        //         localStorage.setItem('statisticsData', JSON.stringify(statisticsData));
+        //     }
+
+        //     // Clear interval timer
+        //     clearInterval(timerInterval);
+
+        //     // Reset history object
+        //     history = {};
+        //     console.log("Cache should be cleatred!");
+        //     // Reset UI elements
+        //     const formContainerWrapper = document.getElementById('formContainer-wrapper');
+        //     const result = document.getElementById('result');
+        //     const summaryButtonContainer = document.getElementById('summary-button-container');
+        //     const timeSummary = document.getElementById('time-summary');
+        //     const timer = document.getElementById('timer');
+        //     const plotter = document.getElementById("plotter");
+
+        //     if (formContainerWrapper) formContainerWrapper.style.display = 'none';
+        //     if (result) result.style.display = 'none';
+        //     if (summaryButtonContainer) summaryButtonContainer.style.display = 'none';
+        //     // if (document.getElementById('chart')) document.getElementById('chart').innerHTML = `<canvas id="timeChart"></canvas>`;
+        //     if (timeSummary) timeSummary.style.display = 'none';
+        //     if (timer) timer.textContent = `${pad(0)}:${pad(0)}:${pad(0)}`;
+        //     if (plotter) plotter.innerHTML = '';
+        // }
+
 
 
         // Handle form submission
